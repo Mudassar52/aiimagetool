@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — AI Image Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #2563eb;
+    --blue-bright: #3b82f6;
+    --blue-dark: #1d4ed8;
+    --blue-glow: rgba(37,99,235,0.35);
+    --bg: #f8faff;
+    --surface: #ffffff;
+    --border: #e5e9f5;
+    --text: #1a1f2e;
+    --muted: #7a8aaa;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 70% 50% at 20% 20%, rgba(37,99,235,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(29,78,216,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px; background:#fff; border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100;
+    box-shadow:0 1px 12px rgba(59,126,248,0.07);
+  }
+  .nav-logo {
+    display:flex; align-items:center; gap:8px;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:17px; color:var(--text);
+    text-decoration:none;
+  }
+  .nav-logo-icon {
+    width:32px; height:32px; background:var(--blue); border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+  .nav-menu { display:flex; gap:24px; list-style:none; }
+  .nav-menu a { text-decoration:none; color:var(--muted); font-size:14px; font-weight:500; transition:color .2s; }
+  .nav-menu a:hover, .nav-menu a.active { color:var(--blue); }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+  .hamburger span { width:22px; height:2px; background:var(--text); border-radius:2px; transition:transform .3s,opacity .3s; }
+  .nav-menu.open {
+    display:flex; flex-direction:column; gap:0;
+    position:absolute; top:61px; left:0; right:0;
+    background:#fff; border-bottom:1px solid var(--border);
+    padding:12px 0; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:99;
+  }
+  .nav-menu.open li a { display:block; padding:12px 24px; font-size:15px; }
+  .hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity:0; }
+  .hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  @media(max-width:600px){ .nav-menu{display:none;} .hamburger{display:flex;} }
+
+  /* ─── HERO ─── */
+  .hero-text { text-align:center; padding:52px 24px 40px; position:relative; z-index:1; }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:#93c5fd; font-size:12px; font-weight:600;
+    padding:5px 14px; border-radius:20px; margin-bottom:20px;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .hero-text h1 {
+    font-family:'Sora',sans-serif; font-size:clamp(28px,5.5vw,52px);
+    font-weight:900; line-height:1.1; margin-bottom:16px;
+    background:linear-gradient(135deg,#1a1f2e 0%,#2563eb 50%,#3b82f6 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-text p { color:var(--muted); font-size:15px; max-width:480px; margin:0 auto; line-height:1.75; }
+
+  /* ─── MAIN WRAPPER ─── */
+  .content-wrapper {
+    max-width:1000px; margin:0 auto; padding:0 24px 80px; position:relative; z-index:1;
+  }
+
+  /* ─── CONTACT GRID ─── */
+  .contact-grid {
+    display:grid; grid-template-columns:1fr 1.6fr; gap:24px; align-items:start;
+  }
+  @media(max-width:780px){ .contact-grid{ grid-template-columns:1fr; } }
+
+  /* ─── INFO CARDS (LEFT) ─── */
+  .info-stack { display:flex; flex-direction:column; gap:14px; }
+
+  .info-card {
+    background:#fff; border:1.5px solid var(--border); border-radius:16px;
+    padding:22px 20px; display:flex; align-items:flex-start; gap:14px;
+    transition:box-shadow .25s, transform .25s, border-color .25s;
+  }
+  .info-card:hover { box-shadow:0 6px 28px rgba(37,99,235,0.09); transform:translateY(-2px); border-color:rgba(37,99,235,0.2); }
+  .info-card-icon {
+    width:44px; height:44px; flex-shrink:0; border-radius:13px;
+    background:rgba(37,99,235,0.09); border:1px solid rgba(37,99,235,0.15);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .info-card-icon svg { width:20px; height:20px; stroke:var(--blue-bright); fill:none; stroke-width:1.8; }
+  .info-card-body h4 { font-family:'Sora',sans-serif; font-size:13.5px; font-weight:700; color:var(--text); margin-bottom:5px; }
+  .info-card-body p { color:var(--muted); font-size:12.5px; line-height:1.65; }
+  .info-card-body a { color:var(--blue); text-decoration:none; font-weight:600; font-size:13px; }
+  .info-card-body a:hover { text-decoration:underline; }
+
+  /* ─── RESPONSE TIME CARD ─── */
+  .response-card {
+    background:linear-gradient(135deg,rgba(37,99,235,0.07),rgba(59,130,246,0.03));
+    border:1.5px solid rgba(37,99,235,0.18); border-radius:16px; padding:20px;
+  }
+  .response-card h4 { font-family:'Sora',sans-serif; font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; }
+  .response-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(37,99,235,0.1); }
+  .response-row:last-child { border-bottom:none; padding-bottom:0; }
+  .response-label { font-size:12.5px; color:var(--muted); }
+  .response-val { font-size:12px; font-weight:700; padding:3px 10px; border-radius:6px; }
+  .val-fast { background:rgba(16,185,129,0.1); color:var(--success); }
+  .val-med { background:rgba(37,99,235,0.1); color:var(--blue); }
+
+  /* ─── FORM CARD (RIGHT) ─── */
+  .form-card {
+    background:#fff; border:1.5px solid var(--border); border-radius:20px;
+    padding:32px 30px;
+    box-shadow:0 4px 32px rgba(37,99,235,0.06);
+  }
+  .form-card h2 {
+    font-family:'Sora',sans-serif; font-size:19px; font-weight:800; color:var(--text); margin-bottom:6px;
+  }
+  .form-card .form-sub { color:var(--muted); font-size:13.5px; margin-bottom:24px; line-height:1.6; }
+
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:500px){ .form-row{ grid-template-columns:1fr; } }
+
+  .form-group { margin-bottom:16px; }
+  .form-group label {
+    display:block; font-size:11.5px; font-weight:700; color:var(--muted);
+    letter-spacing:.4px; text-transform:uppercase; margin-bottom:7px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width:100%; padding:10px 14px; border:1.5px solid var(--border);
+    border-radius:10px; font-family:'DM Sans',sans-serif;
+    font-size:13.5px; font-weight:500; color:var(--text);
+    background:#fff; transition:border-color .2s, box-shadow .2s;
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color:#c8d1e8; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline:none; border-color:var(--blue-bright);
+    box-shadow:0 0 0 3px rgba(37,99,235,0.08);
+  }
+  .form-select {
+    appearance:none; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center;
+    padding-right:34px;
+  }
+  .form-textarea { resize:vertical; min-height:130px; line-height:1.7; }
+
+  .btn-submit {
+    width:100%; display:flex; align-items:center; justify-content:center; gap:9px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:white; border:none; padding:13px 28px; border-radius:11px;
+    font-size:14.5px; font-weight:700; cursor:pointer;
+    transition:opacity .2s, transform .15s; box-shadow:0 4px 20px var(--blue-glow);
+    font-family:'DM Sans',sans-serif; margin-top:6px;
+  }
+  .btn-submit:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-submit svg { width:16px; height:16px; stroke:white; fill:none; stroke-width:2.2; }
+  .btn-submit:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+  /* ─── SUCCESS STATE ─── */
+  #successMsg {
+    display:none; background:rgba(16,185,129,0.07); border:1.5px solid rgba(16,185,129,0.25);
+    border-radius:12px; padding:18px 20px; margin-top:16px;
+    align-items:flex-start; gap:12px;
+  }
+  #successMsg.show { display:flex; }
+  #successMsg svg { width:18px; height:18px; stroke:var(--success); fill:none; stroke-width:2; flex-shrink:0; margin-top:2px; }
+  #successMsg p { color:var(--text); font-size:13.5px; line-height:1.7; }
+
+  /* ─── FAQ ─── */
+  .faq-wrap { max-width:1000px; margin:0 auto; padding:60px 24px 80px; position:relative; z-index:1; }
+  .section-label {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:#93c5fd; font-size:11px; font-weight:700;
+    padding:5px 14px; border-radius:20px; margin-bottom:14px;
+    letter-spacing:.6px; text-transform:uppercase;
+  }
+  .section-title { font-family:'Sora',sans-serif; font-size:clamp(22px,3.5vw,32px); font-weight:800; color:var(--text); margin-bottom:10px; }
+  .section-sub { color:var(--muted); font-size:14px; line-height:1.75; margin-bottom:36px; }
+
+  .faq-list { display:flex; flex-direction:column; gap:12px; }
+  .faq-item { background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:box-shadow .2s; }
+  .faq-item.open { box-shadow:0 4px 24px rgba(37,99,235,0.08); border-color:rgba(37,99,235,0.25); }
+  .faq-question { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; cursor:pointer; font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); gap:14px; user-select:none; }
+  .faq-question:hover { color:var(--blue); }
+  .faq-chevron { width:20px; height:20px; flex-shrink:0; stroke:var(--muted); fill:none; stroke-width:2; transition:transform .3s; }
+  .faq-item.open .faq-chevron { transform:rotate(180deg); stroke:var(--blue); }
+  .faq-answer { max-height:0; overflow:hidden; transition:max-height .35s ease,padding .3s; padding:0 22px; color:var(--muted); font-size:13.5px; line-height:1.75; }
+  .faq-item.open .faq-answer { max-height:200px; padding:0 22px 18px; }
+
+  /* FOOTER */
+  .site-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  .footer-top {
+    max-width: 1020px; margin: 0 auto;
+    padding: 52px 24px 36px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 780px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-brand .nav-logo {
+    display: inline-flex; margin-bottom: 14px;
+  }
+  .footer-brand p {
+    font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 240px; margin-bottom: 20px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .footer-social-btn:hover {
+    background: rgba(37,99,235,0.1); border-color: var(--blue-bright); color: var(--blue);
+  }
+  .footer-social-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .footer-col h5 {
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text); letter-spacing: .6px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--blue); }
+  .footer-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .footer-bottom {
+    max-width: 1020px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .footer-copy {
+    font-size: 12.5px; color: var(--muted);
+  }
+  .footer-copy a { color: var(--blue); text-decoration: none; }
+  .footer-copy a:hover { text-decoration: underline; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.18);
+    color: var(--blue); font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: .4px;
+  }
+  .footer-badge svg { width: 10px; height: 10px; fill: var(--blue); stroke: none; }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Image Tools
+  </a>
+  <ul class="nav-menu">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Term Of User</a></li>
+  </ul>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-text">
+  <div class="hero-pill">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#93c5fd" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    We Reply Within 24 Hours
+  </div>
+  <h1>Get In Touch</h1>
+  <p>Have a question, suggestion, or feedback about our tools? We'd love to hear from you — fill out the form and we'll get back to you shortly.</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content-wrapper">
+  <div class="contact-grid">
+
+    <!-- LEFT: INFO -->
+    <div class="info-stack">
+
+      <div class="info-card">
+        <div class="info-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div class="info-card-body">
+          <h4>Email Us</h4>
+          <p>For general queries and support.</p>
+          <a href="mailto:hello@aiimagetools.com">hello@aiimagetools.com</a>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="info-card-body">
+          <h4>Support & Bug Reports</h4>
+          <p>Found a bug or tool not working? Let us know and we'll fix it fast.</p>
+          <a href="mailto:support@aiimagetools.com">support@aiimagetools.com</a>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="info-card-body">
+          <h4>Business & Partnerships</h4>
+          <p>Interested in collaboration or API access?</p>
+          <a href="mailto:business@aiimagetools.com">business@aiimagetools.com</a>
+        </div>
+      </div>
+
+      <div class="response-card">
+        <h4>Typical Response Times</h4>
+        <div class="response-row">
+          <span class="response-label">General Queries</span>
+          <span class="response-val val-fast">Within 24 hrs</span>
+        </div>
+        <div class="response-row">
+          <span class="response-label">Bug Reports</span>
+          <span class="response-val val-fast">Within 12 hrs</span>
+        </div>
+        <div class="response-row">
+          <span class="response-label">Business Inquiries</span>
+          <span class="response-val val-med">2–3 Business Days</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: FORM -->
+    <div class="form-card">
+      <h2>Send Us a Message</h2>
+      <p class="form-sub">Fill in the details below and we'll respond as soon as possible.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" class="form-input" id="firstName" placeholder="e.g. Ahmed">
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" class="form-input" id="lastName" placeholder="e.g. Khan">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" class="form-input" id="email" placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Subject</label>
+        <select class="form-select" id="subject">
+          <option value="" disabled selected>Select a topic...</option>
+          <option value="general">General Question</option>
+          <option value="bug">Bug Report</option>
+          <option value="feature">Feature Request</option>
+          <option value="tool">Tool Not Working</option>
+          <option value="business">Business / Partnership</option>
+          <option value="privacy">Privacy Concern</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Message</label>
+        <textarea class="form-textarea" id="message" placeholder="Describe your question or issue in detail..."></textarea>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Message
+      </button>
+
+      <div id="successMsg">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <p><strong>Message sent successfully!</strong> Thank you for reaching out. We'll get back to you at the email provided within 24 hours.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- FAQ -->
+<div class="faq-wrap">
+  <div class="section-label">
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    FAQ
+  </div>
+  <h2 class="section-title">Common Questions</h2>
+  <p class="section-sub">Quick answers before you reach out.</p>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Are all your tools completely free?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Yes — all tools on AI Image Tools are 100% free to use with no hidden fees, no watermarks, and no account required.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Are my images safe when I use your tools?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Absolutely. All processing happens directly in your browser — your images are never uploaded to any server. We have zero access to your files.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        A tool is not working properly — what should I do?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Try refreshing the page and using a modern browser like Chrome or Firefox. If the issue persists, use the contact form above and select "Bug Report" — we'll investigate quickly.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Can I request a new feature or tool?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Yes! We love hearing from users. Submit your idea using the form above and select "Feature Request". Popular requests get prioritized in our development roadmap.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Do you offer an API for developers?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">We're exploring API access for developers and businesses. If you're interested, reach out via the contact form and select "Business / Partnership" — we'd love to discuss it.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- FOOTER -->
+<hr class="section-divider">
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        AI Image Tools
+      </a>
+      <p>Free AI-powered profile picture maker. Remove background, circle crop, and download for any platform in seconds.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Tools</h5>
+      <ul>
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="#">BG Remover</a></li>
+        <li><a href="#">Image Resizer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="./contact.html">Contact Us</a></li>
+        <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="./terms.html">Terms of Use</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="./contact.html">Help Center</a></li>
+        <li><a href="./contact.html">Report a Bug</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">&#169; 2025 <a href="#">AI Image Tools</a>. All rights reserved. Powered by <a href="https://www.aiImageTools.com" target="_blank">Image Tools</a>.</p>
+    <span class="footer-badge">
+      <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="6"/></svg>
+      Free &amp; No Watermark
+    </span>
+  </div>
+</footer>
+
+
+<script>
+// Nav hamburger
+const hamburger = document.querySelector('.hamburger');
+const navMenu = document.querySelector('.nav-menu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  navMenu.classList.toggle('open');
+});
+navMenu.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    navMenu.classList.remove('open');
+  });
+});
+
+// FAQ
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// Form submit
+function handleSubmit() {
+  const firstName = document.getElementById('firstName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const subject = document.getElementById('subject').value;
+  const message = document.getElementById('message').value.trim();
+
+  if (!firstName || !email || !subject || !message) {
+    // Highlight empty fields
+    [['firstName', firstName], ['email', email], ['message', message]].forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (!val) { el.style.borderColor = 'var(--danger)'; }
+      else { el.style.borderColor = ''; }
+    });
+    const sel = document.getElementById('subject');
+    if (!subject) { sel.style.borderColor = 'var(--danger)'; }
+    else { sel.style.borderColor = ''; }
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);border-top:2px solid white;display:inline-block;animation:spin .8s linear infinite;"></span> Sending...`;
+
+  setTimeout(() => {
+    btn.style.display = 'none';
+    document.getElementById('successMsg').classList.add('show');
+  }, 1400);
+}
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+</body>
+</html>

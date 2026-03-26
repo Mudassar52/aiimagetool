@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sticker Maker — Free WhatsApp Sticker Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root {
+    --blue: #2563eb;
+    --blue-bright: #3b82f6;
+    --blue-dark: #1d4ed8;
+    --blue-glow: rgba(37,99,235,0.35);
+    --bg: #f8faff;
+    --surface: #ffffff;
+    --border: #e5e9f5;
+    --text: #1a1f2e;
+    --muted: #7a8aaa;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --green: #25d366;
+    --green-glow: rgba(37,211,102,0.3);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 70% 50% at 20% 20%, rgba(37,99,235,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(29,78,216,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px; background:#fff; border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100;
+    box-shadow:0 1px 12px rgba(59,126,248,0.07);
+  }
+  .nav-logo {
+    display:flex; align-items:center; gap:8px;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:17px; color:var(--text);
+    text-decoration:none;
+  }
+  .nav-logo-icon {
+    width:32px; height:32px; background:var(--blue); border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+  .nav-menu { display:flex; gap:24px; list-style:none; }
+  .nav-menu a { text-decoration:none; color:var(--muted); font-size:14px; font-weight:500; transition:color .2s; }
+  .nav-menu a:hover, .nav-menu a.active { color:var(--blue); }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+  .hamburger span { width:22px; height:2px; background:var(--text); border-radius:2px; transition:transform .3s,opacity .3s; }
+  .nav-menu.open {
+    display:flex; flex-direction:column; gap:0;
+    position:absolute; top:61px; left:0; right:0;
+    background:#fff; border-bottom:1px solid var(--border);
+    padding:12px 0; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:99;
+  }
+  .nav-menu.open li a { display:block; padding:12px 24px; font-size:15px; }
+  .hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity:0; }
+  .hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  @media(max-width:600px){ .nav-menu{display:none;} .hamburger{display:flex;} }
+
+  /* ─── HERO ─── */
+  .hero-text { text-align:center; padding:52px 24px 36px; position:relative; z-index:1; }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,211,102,0.12); border:1px solid rgba(37,211,102,0.25);
+    color:#4ade80; font-size:12px; font-weight:600;
+    padding:5px 14px; border-radius:20px; margin-bottom:20px;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .hero-text h1 {
+    font-family:'Sora',sans-serif; font-size:clamp(28px,5.5vw,52px);
+    font-weight:900; line-height:1.1; margin-bottom:16px;
+    background:linear-gradient(135deg,#1a1f2e 0%,#2563eb 50%,#25d366 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-text p { color:var(--muted); font-size:15px; max-width:480px; margin:0 auto; line-height:1.75; }
+
+  /* ─── FORMAT BADGES ─── */
+  .format-flow {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    flex-wrap:wrap; margin-top:24px;
+  }
+  .fmt-badge {
+    background:#fff; border:1.5px solid var(--border);
+    border-radius:8px; padding:6px 14px;
+    font-family:'Sora',sans-serif; font-size:12px; font-weight:700;
+    color:var(--text); letter-spacing:.5px;
+    box-shadow:0 2px 8px rgba(37,99,235,0.06);
+  }
+  .fmt-badge.green { border-color:rgba(37,211,102,0.35); color:#16a34a; background:rgba(37,211,102,0.06); }
+  .fmt-arrow { color:var(--blue-bright); font-size:18px; font-weight:700; }
+
+  /* ─── TOOL WRAPPER ─── */
+  .tool-wrapper { max-width:1000px; margin:0 auto; padding:0 24px 80px; position:relative; z-index:1; }
+
+  /* ─── ERROR BANNER ─── */
+  #errorBanner {
+    display:none; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25);
+    border-radius:12px; padding:13px 16px; margin-bottom:16px;
+    color:#fca5a5; font-size:13.5px; align-items:flex-start; gap:10px;
+  }
+  #errorBanner.show { display:flex; }
+  #errorBanner svg { width:16px; height:16px; stroke:#f87171; fill:none; stroke-width:2; flex-shrink:0; margin-top:1px; }
+
+  /* ─── DROPZONE ─── */
+  #dropzone {
+    border:2px dashed var(--border); border-radius:22px;
+    background:var(--surface); padding:56px 30px;
+    text-align:center; cursor:pointer;
+    transition:border-color .25s, background .25s, transform .2s;
+    position:relative; overflow:hidden;
+  }
+  #dropzone::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 60% 50% at 50% 100%, rgba(37,211,102,0.05) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  #dropzone:hover, #dropzone.drag-over { border-color:#4ade80; transform:translateY(-2px); }
+  #dropzone.drag-over { background:rgba(37,211,102,0.02); }
+  .drop-icon {
+    width:76px; height:76px; margin:0 auto 20px;
+    background:linear-gradient(135deg,rgba(37,211,102,0.14),rgba(37,99,235,0.08));
+    border:1.5px solid rgba(37,211,102,0.22); border-radius:22px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .drop-icon svg { width:34px; height:34px; stroke:#25d366; fill:none; stroke-width:1.5; }
+  #dropzone h3 { font-family:'Sora',sans-serif; font-size:20px; font-weight:700; color:var(--text); margin-bottom:10px; }
+  #dropzone p { color:var(--muted); font-size:13.5px; margin-bottom:24px; line-height:1.6; }
+  .upload-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,#16a34a,#25d366);
+    color:white; border:none; padding:12px 28px; border-radius:10px;
+    font-size:14px; font-weight:600; cursor:pointer;
+    transition:opacity .2s,transform .15s; box-shadow:0 4px 20px var(--green-glow);
+    font-family:'DM Sans',sans-serif;
+  }
+  .upload-btn:hover { opacity:.9; transform:translateY(-1px); }
+  .upload-btn svg { width:16px; height:16px; stroke:white; fill:none; stroke-width:2; }
+  .drop-note { font-size:12px; color:var(--muted); margin-top:14px; }
+  #fileInput { display:none; }
+
+  /* ─── FEATURES STRIP ─── */
+  .features-strip {
+    display:flex; gap:0; justify-content:center; flex-wrap:wrap;
+    max-width:860px; margin:32px auto 0;
+    border:1px solid var(--border); border-radius:14px;
+    overflow:hidden; background:#fff;
+  }
+  .feat-item {
+    flex:1; min-width:130px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:14px 16px; border-right:1px solid var(--border);
+    font-size:12.5px; font-weight:500; color:var(--muted);
+  }
+  .feat-item:last-child { border-right:none; }
+  .feat-item svg { width:14px; height:14px; stroke:#25d366; fill:none; stroke-width:2; flex-shrink:0; }
+  @media(max-width:580px){
+    .features-strip{flex-direction:column;border-radius:12px;}
+    .feat-item{border-right:none;border-bottom:1px solid var(--border);}
+    .feat-item:last-child{border-bottom:none;}
+  }
+
+  /* ─── CONVERTER AREA ─── */
+  #converterArea { display:none; }
+
+  /* ─── SETTINGS BAR ─── */
+  .settings-bar {
+    background:#fff; border:1px solid var(--border); border-radius:18px;
+    padding:20px 24px; margin-bottom:20px;
+    display:grid; grid-template-columns:1fr 1fr auto; gap:16px; align-items:end;
+  }
+  @media(max-width:720px){ .settings-bar{grid-template-columns:1fr 1fr;} }
+  @media(max-width:480px){ .settings-bar{grid-template-columns:1fr;} }
+
+  .setting-group label {
+    display:block; font-size:11.5px; font-weight:700; color:var(--muted);
+    letter-spacing:.4px; text-transform:uppercase; margin-bottom:8px;
+  }
+
+  /* ─── STICKER OPTIONS ─── */
+  .sticker-options {
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .option-row {
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    flex-wrap:wrap;
+  }
+  .toggle-wrap {
+    display:flex; align-items:center; gap:10px;
+  }
+  .toggle-label {
+    font-size:13px; font-weight:600; color:var(--text);
+  }
+  .toggle-sub {
+    font-size:11px; color:var(--muted);
+  }
+  /* Toggle switch */
+  .toggle { position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0; }
+  .toggle input { opacity:0; width:0; height:0; }
+  .toggle-slider {
+    position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
+    background:var(--border); border-radius:24px; transition:.3s;
+  }
+  .toggle-slider:before {
+    content:''; position:absolute; height:18px; width:18px;
+    left:3px; bottom:3px; background:#fff;
+    border-radius:50%; transition:.3s;
+    box-shadow:0 1px 4px rgba(0,0,0,0.15);
+  }
+  .toggle input:checked + .toggle-slider { background:#25d366; }
+  .toggle input:checked + .toggle-slider:before { transform:translateX(18px); }
+
+  .size-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,211,102,0.10); border:1px solid rgba(37,211,102,0.25);
+    color:#16a34a; font-size:12px; font-weight:700;
+    padding:5px 12px; border-radius:8px; font-family:'Sora',sans-serif;
+    white-space:nowrap;
+  }
+  .size-badge svg { width:12px; height:12px; stroke:#16a34a; fill:none; stroke-width:2.5; }
+
+  .btn-convert-all {
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,#16a34a,#25d366);
+    color:white; border:none; padding:11px 22px; border-radius:10px;
+    font-size:13.5px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; box-shadow:0 4px 18px var(--green-glow);
+    font-family:'DM Sans',sans-serif; white-space:nowrap;
+    height:44px;
+  }
+  .btn-convert-all:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-convert-all svg { width:15px; height:15px; stroke:white; fill:none; stroke-width:2.2; }
+
+  /* ─── TOOLBAR ─── */
+  .toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; flex-wrap:wrap; gap:12px;
+  }
+  .toolbar-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .toolbar h3 { font-family:'Sora',sans-serif; font-size:17px; font-weight:700; color:var(--text); }
+  .count-badge {
+    background:rgba(37,211,102,0.12); border:1px solid rgba(37,211,102,0.25);
+    color:#16a34a; font-size:11.5px; font-weight:700;
+    padding:3px 10px; border-radius:20px; font-family:'Sora',sans-serif;
+  }
+  .toolbar-right { display:flex; gap:10px; flex-wrap:wrap; }
+
+  .btn-ghost {
+    display:flex; align-items:center; gap:7px;
+    background:#fff; border:1.5px solid var(--border);
+    color:var(--muted); padding:8px 16px; border-radius:9px;
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    transition:all .2s; font-family:'DM Sans',sans-serif;
+  }
+  .btn-ghost:hover { border-color:#4ade80; color:#16a34a; }
+  .btn-ghost svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; }
+  .btn-ghost:disabled { opacity:.4; cursor:not-allowed; }
+
+  .btn-zip {
+    display:flex; align-items:center; gap:7px;
+    background:linear-gradient(135deg,#16a34a,#25d366);
+    color:white; border:none; padding:8px 18px; border-radius:9px;
+    font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; font-family:'DM Sans',sans-serif;
+    box-shadow:0 3px 12px var(--green-glow);
+  }
+  .btn-zip:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-zip:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+  .btn-zip svg { width:13px; height:13px; stroke:white; fill:none; stroke-width:2; }
+
+  /* ─── FILE LIST ─── */
+  .file-list { display:flex; flex-direction:column; gap:10px; }
+
+  .file-card {
+    background:#fff; border:1.5px solid var(--border); border-radius:16px;
+    display:grid; grid-template-columns:80px 1fr auto; gap:0; overflow:hidden;
+    transition:box-shadow .2s, border-color .2s;
+  }
+  .file-card:hover { box-shadow:0 4px 24px rgba(37,211,102,0.08); }
+  .file-card.converting { border-color:rgba(37,99,235,0.3); }
+  .file-card.done { border-color:rgba(37,211,102,0.35); }
+  .file-card.error { border-color:rgba(239,68,68,0.35); }
+
+  .file-thumb {
+    width:80px; background:#f1f5f9;
+    display:flex; align-items:center; justify-content:center;
+    border-right:1.5px solid var(--border); flex-shrink:0; position:relative;
+  }
+  .file-thumb img { width:68px; height:68px; object-fit:cover; border-radius:8px; }
+  .file-thumb .fmt-icon {
+    width:48px; height:48px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Sora',sans-serif; font-size:10px; font-weight:800;
+    letter-spacing:.3px;
+  }
+  .preview-sticker {
+    width:68px; height:68px; object-fit:contain; border-radius:8px;
+    /* checkerboard bg to show transparency */
+    background-image: linear-gradient(45deg,#e5e7eb 25%,transparent 25%),
+                      linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),
+                      linear-gradient(45deg,transparent 75%,#e5e7eb 75%),
+                      linear-gradient(-45deg,transparent 75%,#e5e7eb 75%);
+    background-size:10px 10px;
+    background-position:0 0, 0 5px, 5px -5px, -5px 0px;
+  }
+
+  .file-info { padding:13px 16px; display:flex; flex-direction:column; justify-content:center; gap:5px; min-width:0; }
+  .file-name { font-size:13.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .file-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .file-size { font-size:11.5px; color:var(--muted); }
+  .file-arrow {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:11.5px; font-weight:700;
+  }
+  .fmt-from { color:var(--muted); background:#f1f5f9; padding:2px 7px; border-radius:5px; }
+  .fmt-to-sticker { color:#16a34a; background:rgba(37,211,102,0.12); padding:2px 7px; border-radius:5px; font-weight:700; }
+  .file-status { font-size:11px; font-weight:600; }
+  .status-waiting { color:var(--muted); }
+  .status-converting { color:var(--blue); }
+  .status-done { color:var(--success); }
+  .status-error { color:var(--danger); }
+
+  /* Progress bar */
+  .file-progress { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:5px; display:none; }
+  .file-progress-bar { height:100%; border-radius:2px; width:0%; transition:width .4s; }
+  .file-card.converting .file-progress { display:block; }
+  .file-card.converting .file-progress-bar { background:var(--blue-bright); width:70%; animation:prog .6s ease forwards .1s; }
+  .file-card.done .file-progress { display:block; }
+  .file-card.done .file-progress-bar { background:#25d366; width:100%; }
+  @keyframes prog { to{width:90%;} }
+
+  .file-actions { padding:12px 14px; display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .btn-dl {
+    display:flex; align-items:center; gap:6px;
+    background:linear-gradient(135deg,#16a34a,#25d366);
+    color:white; border:none; padding:7px 14px; border-radius:8px;
+    font-size:12px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; font-family:'DM Sans',sans-serif;
+    box-shadow:0 2px 10px var(--green-glow);
+  }
+  .btn-dl:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-dl:disabled { opacity:.3; cursor:not-allowed; transform:none; }
+  .btn-dl svg { width:12px; height:12px; stroke:white; fill:none; stroke-width:2.5; }
+
+  .btn-remove {
+    width:30px; height:30px; border-radius:8px; border:1.5px solid var(--border);
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s; flex-shrink:0;
+  }
+  .btn-remove:hover { border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.05); }
+  .btn-remove svg { width:13px; height:13px; stroke:#f87171; fill:none; stroke-width:2; }
+
+  /* ─── STATS ROW ─── */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;
+  }
+  @media(max-width:640px){ .stats-row{grid-template-columns:1fr 1fr;} }
+  .stat-card {
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    padding:16px 18px;
+  }
+  .stat-label { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.4px; text-transform:uppercase; margin-bottom:6px; }
+  .stat-value { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; color:var(--text); }
+  .stat-value.green { color:#16a34a; }
+  .stat-value.blue { color:var(--blue); }
+
+  /* ─── ADD MORE ─── */
+  .add-more-btn {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:14px; border:2px dashed var(--border); border-radius:14px;
+    background:transparent; color:var(--muted); font-size:13.5px; font-weight:600;
+    cursor:pointer; margin-top:12px; transition:all .2s; font-family:'DM Sans',sans-serif;
+  }
+  .add-more-btn:hover { border-color:#4ade80; color:#16a34a; background:rgba(37,211,102,0.02); }
+  .add-more-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+
+  /* ─── INFO BANNER ─── */
+  .info-banner {
+    background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.2);
+    border-radius:12px; padding:13px 16px; margin-bottom:16px;
+    color:#16a34a; font-size:13px; display:flex; align-items:flex-start; gap:10px;
+  }
+  .info-banner svg { width:16px; height:16px; stroke:#16a34a; fill:none; stroke-width:2; flex-shrink:0; margin-top:1px; }
+
+  /* ─── SECTIONS ─── */
+  hr.section-divider { border:none; border-top:1px solid var(--border); margin:0; }
+  .section-wrapper { max-width:1000px; margin:0 auto; padding:64px 24px; }
+  .section-label {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,99,235,0.08); border:1px solid rgba(37,99,235,0.18);
+    color:#93c5fd; font-size:11px; font-weight:700;
+    padding:4px 12px; border-radius:20px; margin-bottom:16px;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .section-title { font-family:'Sora',sans-serif; font-size:clamp(22px,4vw,34px); font-weight:800; color:var(--text); margin-bottom:12px; }
+  .section-sub { color:var(--muted); font-size:14.5px; line-height:1.75; max-width:560px; }
+
+  /* Steps */
+  .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  @media(max-width:720px){ .steps-grid{grid-template-columns:1fr 1fr;} }
+  @media(max-width:460px){ .steps-grid{grid-template-columns:1fr;} }
+  .step-card {
+    background:#fff; border:1px solid var(--border); border-radius:18px; padding:24px 20px;
+    position:relative; transition:box-shadow .2s;
+  }
+  .step-card:hover { box-shadow:0 6px 28px rgba(37,99,235,0.08); }
+  .step-number {
+    width:36px; height:36px; background:linear-gradient(135deg,#16a34a,#25d366);
+    border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-family:'Sora',sans-serif; font-size:15px; font-weight:800; color:white;
+    margin-bottom:16px;
+  }
+  .step-card h4 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; margin-bottom:8px; }
+  .step-card p { color:var(--muted); font-size:13px; line-height:1.7; }
+
+  /* Formats grid */
+  .formats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  @media(max-width:640px){ .formats-grid{grid-template-columns:1fr 1fr;} }
+  .format-card {
+    background:#fff; border:1px solid var(--border); border-radius:16px; padding:22px 20px;
+    transition:box-shadow .2s;
+  }
+  .format-card:hover { box-shadow:0 6px 28px rgba(37,99,235,0.07); }
+  .fmt-big {
+    width:52px; height:52px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Sora',sans-serif; font-size:11px; font-weight:800;
+    letter-spacing:.5px; margin-bottom:14px;
+  }
+  .format-card h4 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; margin-bottom:6px; }
+  .format-card p { color:var(--muted); font-size:13px; line-height:1.7; }
+
+  /* FAQ */
+  .faq-list { display:flex; flex-direction:column; gap:12px; max-width:720px; margin:0 auto; }
+  .faq-item { background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:box-shadow .2s; }
+  .faq-item.open { box-shadow:0 4px 24px rgba(37,99,235,0.08); border-color:rgba(37,99,235,0.25); }
+  .faq-question { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; cursor:pointer; font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); gap:14px; user-select:none; }
+  .faq-question:hover { color:var(--blue); }
+  .faq-chevron { width:20px; height:20px; flex-shrink:0; stroke:var(--muted); fill:none; stroke-width:2; transition:transform .3s; }
+  .faq-item.open .faq-chevron { transform:rotate(180deg); stroke:var(--blue); }
+  .faq-answer { max-height:0; overflow:hidden; transition:max-height .35s ease,padding .3s; padding:0 22px; color:var(--muted); font-size:13.5px; line-height:1.75; }
+  .faq-item.open .faq-answer { max-height:200px; padding:0 22px 18px; }
+
+  /* ─── SPINNER ─── */
+  .mini-spin { width:14px; height:14px; border-radius:50%; border:2px solid rgba(37,99,235,0.2); border-top:2px solid var(--blue); animation:spin .8s linear infinite; flex-shrink:0; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+
+  /* ─── EDIT BUTTON on card ─── */
+  .btn-edit {
+    display:flex; align-items:center; gap:6px;
+    background:#fff; border:1.5px solid var(--border);
+    color:var(--muted); padding:7px 12px; border-radius:8px;
+    font-size:12px; font-weight:600; cursor:pointer;
+    transition:all .2s; font-family:'DM Sans',sans-serif;
+  }
+  .btn-edit:hover { border-color:#6366f1; color:#6366f1; }
+  .btn-edit svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; }
+
+  /* ─── PRO BADGE ─── */
+  .pro-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    background:linear-gradient(135deg,#7c3aed,#a855f7);
+    color:white; font-size:10.5px; font-weight:700;
+    padding:3px 9px; border-radius:20px; font-family:'Sora',sans-serif;
+    letter-spacing:.3px; margin-left:8px;
+  }
+
+  /* ─── EDITOR MODAL ─── */
+  .editor-overlay {
+    display:none; position:fixed; inset:0; z-index:1000;
+    background:rgba(0,0,0,0.6); backdrop-filter:blur(6px);
+    align-items:center; justify-content:center; padding:16px;
+  }
+  .editor-overlay.open { display:flex; }
+  .editor-modal {
+    background:#fff; border-radius:24px; width:100%; max-width:860px;
+    max-height:90vh; overflow:hidden; display:flex; flex-direction:column;
+    box-shadow:0 24px 80px rgba(0,0,0,0.25);
+  }
+  .editor-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 24px; border-bottom:1px solid var(--border);
+    flex-shrink:0;
+  }
+  .editor-header h3 { font-family:'Sora',sans-serif; font-size:17px; font-weight:800; color:var(--text); }
+  .editor-close {
+    width:34px; height:34px; border-radius:10px; border:1.5px solid var(--border);
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s;
+  }
+  .editor-close:hover { border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.06); }
+  .editor-close svg { width:14px; height:14px; stroke:#f87171; fill:none; stroke-width:2; }
+  .editor-body {
+    display:grid; grid-template-columns:1fr 320px;
+    flex:1; overflow:hidden; min-height:0;
+  }
+  @media(max-width:680px){ .editor-body{grid-template-columns:1fr; overflow-y:auto;} }
+
+  /* Canvas area */
+  .editor-canvas-wrap {
+    display:flex; align-items:center; justify-content:center;
+    background:#f1f5f9; padding:24px; position:relative; overflow:hidden;
+  }
+  #editorCanvas {
+    border-radius:12px;
+    box-shadow:0 6px 30px rgba(0,0,0,0.15);
+    cursor:move;
+    /* checkerboard for transparency */
+    background-image: linear-gradient(45deg,#e2e8f0 25%,transparent 25%),
+                      linear-gradient(-45deg,#e2e8f0 25%,transparent 25%),
+                      linear-gradient(45deg,transparent 75%,#e2e8f0 75%),
+                      linear-gradient(-45deg,transparent 75%,#e2e8f0 75%);
+    background-size:16px 16px;
+    background-position:0 0, 0 8px, 8px -8px, -8px 0px;
+  }
+
+  /* Controls panel */
+  .editor-controls {
+    border-left:1px solid var(--border); overflow-y:auto;
+    padding:16px; display:flex; flex-direction:column; gap:14px;
+  }
+  .ctrl-section { display:flex; flex-direction:column; gap:8px; }
+  .ctrl-section-title {
+    font-size:10.5px; font-weight:800; color:var(--muted);
+    letter-spacing:.6px; text-transform:uppercase;
+    display:flex; align-items:center; gap:6px;
+  }
+  .ctrl-section-title svg { width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2.5; }
+  .ctrl-row { display:flex; gap:8px; align-items:center; }
+  .ctrl-row label { font-size:12px; font-weight:600; color:var(--text); flex-shrink:0; min-width:52px; }
+  .ctrl-row input[type=text], .ctrl-row select {
+    flex:1; border:1.5px solid var(--border); border-radius:8px;
+    padding:7px 10px; font-size:12.5px; color:var(--text); background:#fff;
+    font-family:'DM Sans',sans-serif; outline:none; transition:border-color .2s;
+  }
+  .ctrl-row input[type=text]:focus, .ctrl-row select:focus { border-color:var(--blue); }
+  .ctrl-row input[type=color] { width:36px; height:32px; border:1.5px solid var(--border); border-radius:8px; cursor:pointer; padding:2px; background:#fff; }
+  .ctrl-row input[type=range] { flex:1; accent-color:var(--blue); }
+  .ctrl-row .range-val { font-size:11px; color:var(--muted); min-width:30px; text-align:right; }
+  .ctrl-full { width:100%; }
+
+  /* Emoji grid */
+  .emoji-grid {
+    display:flex; flex-wrap:wrap; gap:4px; max-height:110px; overflow-y:auto;
+  }
+  .emoji-btn {
+    width:32px; height:32px; border:1.5px solid var(--border); border-radius:8px;
+    background:#fff; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .2s; flex-shrink:0;
+  }
+  .emoji-btn:hover { border-color:#a78bfa; transform:scale(1.1); }
+
+  /* Tab bar inside editor */
+  .editor-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .editor-tab {
+    padding:10px 16px; font-size:12.5px; font-weight:700; cursor:pointer;
+    color:var(--muted); border-bottom:2px solid transparent; transition:all .2s;
+    font-family:'Sora',sans-serif;
+  }
+  .editor-tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+  .editor-tab-panel { display:none; }
+  .editor-tab-panel.active { display:flex; flex-direction:column; gap:14px; }
+
+  /* Editor footer */
+  .editor-footer {
+    display:flex; gap:10px; justify-content:flex-end;
+    padding:14px 24px; border-top:1px solid var(--border); flex-shrink:0;
+    flex-wrap:wrap;
+  }
+  .btn-editor-reset {
+    display:flex; align-items:center; gap:7px;
+    background:#fff; border:1.5px solid var(--border);
+    color:var(--muted); padding:9px 18px; border-radius:10px;
+    font-size:13px; font-weight:600; cursor:pointer; transition:all .2s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .btn-editor-reset:hover { border-color:#f87171; color:#ef4444; }
+  .btn-editor-apply {
+    display:flex; align-items:center; gap:7px;
+    background:linear-gradient(135deg,#7c3aed,#a855f7);
+    color:white; border:none; padding:9px 20px; border-radius:10px;
+    font-size:13px; font-weight:700; cursor:pointer; transition:opacity .2s, transform .15s;
+    font-family:'DM Sans',sans-serif; box-shadow:0 4px 16px rgba(124,58,237,0.3);
+  }
+  .btn-editor-apply:hover { opacity:.9; transform:translateY(-1px); }
+
+  /* Divider inside controls */
+  .ctrl-divider { height:1px; background:var(--border); margin:2px 0; }
+
+  /* Pack name input */
+  .pack-name-wrap {
+    display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  }
+  .pack-name-wrap input {
+    flex:1; border:1.5px solid var(--border); border-radius:8px;
+    padding:9px 12px; font-size:13px; color:var(--text); background:#fff;
+    font-family:'DM Sans',sans-serif; outline:none; transition:border-color .2s;
+  }
+  .pack-name-wrap input:focus { border-color:var(--blue); }
+
+  /* Sticker pack download btn */
+  .btn-pack {
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,#0ea5e9,#2563eb);
+    color:white; border:none; padding:10px 20px; border-radius:10px;
+    font-size:13px; font-weight:700; cursor:pointer; transition:opacity .2s;
+    font-family:'DM Sans',sans-serif; box-shadow:0 4px 16px rgba(37,99,235,0.25);
+    width:100%;
+  }
+  .btn-pack:hover { opacity:.9; }
+  .btn-pack:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-pack svg { width:14px; height:14px; stroke:white; fill:none; stroke-width:2; }
+
+   /* ─── ABOUT SECTION ─── */
+.about-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+@media(max-width:768px){
+  .about-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.about-text .about-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.about-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.about-features div {
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.about-image img {
+  width: 100%;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(37,99,235,0.15);
+  object-fit: cover;
+}
+
+
+
+ /* FOOTER */
+  .site-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  .footer-top {
+    max-width: 1020px; margin: 0 auto;
+    padding: 52px 24px 36px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 780px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-brand .nav-logo {
+    display: inline-flex; margin-bottom: 14px;
+  }
+  .footer-brand p {
+    font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 240px; margin-bottom: 20px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .footer-social-btn:hover {
+    background: rgba(37,99,235,0.1); border-color: var(--blue-bright); color: var(--blue);
+  }
+  .footer-social-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .footer-col h5 {
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text); letter-spacing: .6px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--blue); }
+  .footer-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .footer-bottom {
+    max-width: 1020px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .footer-copy {
+    font-size: 12.5px; color: var(--muted);
+  }
+  .footer-copy a { color: var(--blue); text-decoration: none; }
+  .footer-copy a:hover { text-decoration: underline; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.18);
+    color: var(--blue); font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: .4px;
+  }
+  .footer-badge svg { width: 10px; height: 10px; fill: var(--blue); stroke: none; }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Image Tools
+  </a>
+  <ul class="nav-menu">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Term Of User</a></li>
+  </ul>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-text">
+  <div class="hero-pill">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#4ade80" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    WhatsApp Ready · 512×512 · WebP · Transparent
+  </div>
+  <h1>Image to WhatsApp<br>Sticker Converter</h1>
+  <p>Remove background automatically, crop to 1:1 ratio, export as 512×512 WebP — WhatsApp sticker ready in seconds.</p>
+  <div class="format-flow">
+    <span class="fmt-badge">JPG</span>
+    <span class="fmt-arrow">→</span>
+    <span class="fmt-badge">PNG</span>
+    <span class="fmt-arrow">→</span>
+    <span class="fmt-badge green">WEBP Sticker ✓</span>
+  </div>
+</div>
+
+<!-- TOOL -->
+<div class="tool-wrapper">
+
+  <div id="errorBanner">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="errorText">Something went wrong.</span>
+  </div>
+
+  <!-- DROP ZONE -->
+  <div id="dropzone">
+    <div class="drop-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <h3>Drop Images to Make Stickers</h3>
+    <p>Supports JPG, PNG, WEBP — auto removes background & exports as 512×512 WebP</p>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Choose Images
+    </button>
+    <p class="drop-note">✓ Background removed via remove.bg API · Output: 512×512 WebP</p>
+    <input type="file" id="fileInput" accept="image/*" multiple />
+  </div>
+
+  <!-- FEATURES STRIP -->
+  <div class="features-strip" id="featuresStrip">
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+      512×512 px
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+      WebP Format
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      Auto BG Remove
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      1:1 Auto Crop
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Batch Download
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      WhatsApp Ready
+    </div>
+  </div>
+
+  <!-- CONVERTER AREA -->
+  <div id="converterArea">
+
+    <!-- INFO BANNER -->
+    <div class="info-banner">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>All stickers are exported as <strong>512×512 WebP</strong> with <strong>transparent background</strong> — ready to use in WhatsApp Sticker apps.</span>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-label">Total Images</div>
+        <div class="stat-value blue" id="statTotal">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Stickers Ready</div>
+        <div class="stat-value green" id="statDone">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Original Size</div>
+        <div class="stat-value" id="statOrigSize">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Output Size</div>
+        <div class="stat-value green" id="statOutSize">—</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS BAR -->
+    <div class="settings-bar">
+      <div class="setting-group">
+        <label>Sticker Options</label>
+        <div class="sticker-options">
+          <div class="option-row">
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="removeBgToggle" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              <div>
+                <div class="toggle-label">Remove Background</div>
+                <div class="toggle-sub">Uses remove.bg AI API</div>
+              </div>
+            </div>
+          </div>
+          <div class="option-row">
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" id="autocropToggle" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              <div>
+                <div class="toggle-label">Auto Crop 1:1</div>
+                <div class="toggle-sub">Center crop to square</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label>Output Size</label>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="size-badge">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            512 × 512 px · WebP
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+            WhatsApp sticker standard size.<br>Transparent background preserved.
+          </div>
+        </div>
+      </div>
+      <div>
+        <button class="btn-convert-all" onclick="convertAll()">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Make Stickers
+        </button>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h3>Images</h3>
+        <span class="count-badge" id="countBadge">0 images</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-ghost" id="clearBtn" onclick="clearAll()">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Clear All
+        </button>
+        <button class="btn-zip" id="zipBtn" onclick="downloadZip()" disabled>
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download All ZIP
+        </button>
+      </div>
+    </div>
+
+    <!-- FILE LIST -->
+    <div class="file-list" id="fileList"></div>
+
+    <!-- ADD MORE -->
+    <button class="add-more-btn" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Add More Images
+    </button>
+
+    <!-- STICKER PACK -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:18px;padding:20px 24px;margin-top:16px;">
+      <div style="font-family:'Sora',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:6px;">
+        📦 Sticker Pack Creator
+        <span class="pro-badge">✦ PRO</span>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.6;">
+        Name your pack and download all stickers as a organized ZIP — ready to import into Sticker Maker app.
+      </div>
+      <div class="pack-name-wrap">
+        <input type="text" id="packNameInput" placeholder="My Sticker Pack" value="My WhatsApp Pack">
+      </div>
+      <button class="btn-pack" id="packBtn" onclick="downloadPack()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Sticker Pack ZIP
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ABOUT SECTION -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div class="about-container">
+
+    <!-- LEFT CONTENT -->
+    <div class="about-text">
+      <div class="section-label">
+        About Tool
+      </div>
+
+      <h2 class="section-title">
+       Powerful WhatsApp Sticker Tool Online
+      </h2>
+
+      <p class="section-sub">
+       Our WhatsApp Sticker Tool helps you create, customize, and download high-quality stickers for WhatsApp in just a few clicks. Whether you want to turn your photos into stickers, remove backgrounds, or design custom sticker packs, everything is possible directly in your browser — fast, secure, and easy to use.
+</p>
+
+      <p class="about-desc">
+        This tool is designed for developers, designers, and everyday users who need a simple, fast, and secure way to convert images. 
+        With batch conversion, quality control, and resizing options, you get full control over your images without using heavy software like Photoshop.
+      </p>
+
+      <div class="about-features">
+        <div>✔ 100% Browser-Based Processing</div>
+        <div>✔ No Watermark, Completely Free</div>
+        <div>✔ Batch Image Conversion</div>
+        <div>✔ Secure & Private</div>
+      </div>
+    </div>
+
+    <!-- RIGHT IMAGE -->
+    <div class="about-image">
+      <img src="./img/WhatsApp-sticker-maker.webp" alt="Image Converter Tool">
+    </div>
+
+  </div>
+</div>
+
+
+<!-- HOW IT WORKS -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;">
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      How It Works
+    </div>
+    <div class="section-title">Make Stickers in 4 Simple Steps</div>
+    <p class="section-sub" style="margin:0 auto 44px;">AI removes the background, crops to square, and exports WhatsApp-ready WebP files.</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h4>Upload Image</h4>
+      <p>Drag & drop or click to select one or more photos. JPG, PNG and WEBP supported.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h4>BG Removed</h4>
+      <p>remove.bg AI instantly detects and removes the background, leaving a clean transparent cutout.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h4>Crop & Resize</h4>
+      <p>Image is center-cropped to 1:1 ratio and resized to exactly 512×512 pixels — WhatsApp standard.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">4</div>
+      <h4>Download WebP</h4>
+      <p>Save individual stickers or download all as a ZIP. Import into any WhatsApp sticker pack creator.</p>
+    </div>
+  </div>
+</div>
+
+<!-- STICKER SPECS -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;">
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Sticker Specs
+    </div>
+    <div class="section-title">WhatsApp Sticker Requirements</div>
+    <p class="section-sub" style="margin:0 auto 44px;">This tool automatically meets all WhatsApp sticker specifications.</p>
+  </div>
+  <div class="formats-grid">
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(37,211,102,0.12);color:#16a34a;">512</div>
+      <h4>512 × 512 px</h4>
+      <p>WhatsApp requires stickers to be exactly 512×512 pixels. Auto-resized for you.</p>
+    </div>
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(37,99,235,0.12);color:#2563eb;">WebP</div>
+      <h4>WebP Format</h4>
+      <p>WhatsApp stickers must be in WebP format. Smaller file size with excellent quality.</p>
+    </div>
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(139,92,246,0.12);color:#8b5cf6;">BG</div>
+      <h4>Transparent BG</h4>
+      <p>Stickers need a transparent background. remove.bg AI handles this automatically.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;">
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      FAQ
+    </div>
+    <div class="section-title">Frequently Asked Questions</div>
+    <p class="section-sub" style="margin:0 auto 44px;">Everything you need to know about Sticker Maker.</p>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        How do I use the sticker on WhatsApp?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Download the WebP sticker file, then use a WhatsApp sticker pack creator app (like "Sticker Maker" on Android/iOS) to import the sticker and add it to your personal sticker pack on WhatsApp.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        What images work best for stickers?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Images with a clear subject against a simple or contrasting background work best — portraits, objects, animals, logos. Complex backgrounds or very detailed subjects may require manual touchup after background removal.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Can I turn off background removal?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Yes — toggle off "Remove Background" in the settings. The image will still be cropped and resized to 512×512 WebP, but the original background will be preserved.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Is the background removal free?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Background removal uses the remove.bg API which has a free tier. Disabling "Remove Background" converts images entirely in your browser with no API calls or limits.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── EDITOR MODAL ─── -->
+<div class="editor-overlay" id="editorOverlay">
+  <div class="editor-modal">
+    <div class="editor-header">
+      <h3>✏️ Sticker Editor <span class="pro-badge">✦ PRO</span></h3>
+      <button class="editor-close" onclick="closeEditor()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="editor-tabs">
+      <div class="editor-tab active" onclick="switchTab('text',this)">✍️ Text</div>
+      <div class="editor-tab" onclick="switchTab('emoji',this)">😂 Emoji</div>
+      <div class="editor-tab" onclick="switchTab('effects',this)">✨ Effects</div>
+    </div>
+    <div class="editor-body">
+      <!-- CANVAS -->
+      <div class="editor-canvas-wrap">
+        <canvas id="editorCanvas" width="320" height="320"></canvas>
+      </div>
+      <!-- CONTROLS -->
+      <div class="editor-controls">
+
+        <!-- TEXT TAB -->
+        <div class="editor-tab-panel active" id="tab-text">
+          <div class="ctrl-section">
+            <div class="ctrl-section-title"><svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg> Text</div>
+            <input type="text" id="textInput" placeholder="Add sticker text…" class="ctrl-full" oninput="renderEditor()" style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:100%;">
+            <div class="ctrl-row">
+              <label>Font</label>
+              <select id="fontSelect" onchange="renderEditor()">
+                <option value="Sora">Sora</option>
+                <option value="Impact">Impact</option>
+                <option value="Arial Black">Arial Black</option>
+                <option value="Comic Sans MS">Comic Sans</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Trebuchet MS">Trebuchet</option>
+              </select>
+            </div>
+            <div class="ctrl-row">
+              <label>Color</label>
+              <input type="color" id="textColor" value="#ffffff" oninput="renderEditor()">
+              <input type="color" id="textStroke" value="#000000" oninput="renderEditor()" title="Outline color">
+              <span style="font-size:11px;color:var(--muted);margin-left:4px;">Fill / Outline</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Size</label>
+              <input type="range" id="fontSize" min="12" max="120" value="42" oninput="renderEditor();this.nextElementSibling.textContent=this.value+'px'">
+              <span class="range-val">42px</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Outline</label>
+              <input type="range" id="strokeWidth" min="0" max="12" value="3" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">3</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Bold</label>
+              <input type="checkbox" id="textBold" onchange="renderEditor()" checked style="width:18px;height:18px;accent-color:var(--blue);cursor:pointer;">
+              <label style="min-width:auto;margin-left:4px;font-size:12px;color:var(--muted);">Bold text</label>
+            </div>
+            <div class="ctrl-row">
+              <label>Pos X</label>
+              <input type="range" id="textX" min="0" max="100" value="50" oninput="renderEditor()">
+            </div>
+            <div class="ctrl-row">
+              <label>Pos Y</label>
+              <input type="range" id="textY" min="0" max="100" value="85" oninput="renderEditor()">
+            </div>
+          </div>
+        </div>
+
+        <!-- EMOJI TAB -->
+        <div class="editor-tab-panel" id="tab-emoji">
+          <div class="ctrl-section">
+            <div class="ctrl-section-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Add Emoji</div>
+            <div class="emoji-grid" id="emojiGrid"></div>
+            <div class="ctrl-row">
+              <label>Size</label>
+              <input type="range" id="emojiSize" min="20" max="200" value="80" oninput="renderEditor();this.nextElementSibling.textContent=this.value+'px'">
+              <span class="range-val">80px</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Pos X</label>
+              <input type="range" id="emojiX" min="0" max="100" value="80" oninput="renderEditor()">
+            </div>
+            <div class="ctrl-row">
+              <label>Pos Y</label>
+              <input type="range" id="emojiY" min="0" max="100" value="20" oninput="renderEditor()">
+            </div>
+          </div>
+        </div>
+
+        <!-- EFFECTS TAB -->
+        <div class="editor-tab-panel" id="tab-effects">
+          <div class="ctrl-section">
+            <div class="ctrl-section-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg> Border / Outline</div>
+            <div class="ctrl-row">
+              <label>Show</label>
+              <input type="checkbox" id="borderOn" onchange="renderEditor()" style="width:18px;height:18px;accent-color:var(--blue);cursor:pointer;">
+              <label style="min-width:auto;margin-left:4px;font-size:12px;color:var(--muted);">Add border</label>
+            </div>
+            <div class="ctrl-row">
+              <label>Color</label>
+              <input type="color" id="borderColor" value="#ffffff" oninput="renderEditor()">
+            </div>
+            <div class="ctrl-row">
+              <label>Width</label>
+              <input type="range" id="borderWidth" min="1" max="40" value="10" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">10</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Radius</label>
+              <input type="range" id="borderRadius" min="0" max="60" value="0" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">0</span>
+            </div>
+          </div>
+          <div class="ctrl-divider"></div>
+          <div class="ctrl-section">
+            <div class="ctrl-section-title"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="13" height="13"/><rect x="8" y="8" width="13" height="13"/></svg> Shadow</div>
+            <div class="ctrl-row">
+              <label>Show</label>
+              <input type="checkbox" id="shadowOn" onchange="renderEditor()" style="width:18px;height:18px;accent-color:var(--blue);cursor:pointer;">
+              <label style="min-width:auto;margin-left:4px;font-size:12px;color:var(--muted);">Add shadow</label>
+            </div>
+            <div class="ctrl-row">
+              <label>Color</label>
+              <input type="color" id="shadowColor" value="#000000" oninput="renderEditor()">
+            </div>
+            <div class="ctrl-row">
+              <label>Blur</label>
+              <input type="range" id="shadowBlur" min="0" max="40" value="12" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">12</span>
+            </div>
+            <div class="ctrl-row">
+              <label>X</label>
+              <input type="range" id="shadowX" min="-30" max="30" value="4" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">4</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Y</label>
+              <input type="range" id="shadowY" min="-30" max="30" value="4" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">4</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Opacity</label>
+              <input type="range" id="shadowOpacity" min="0" max="100" value="60" oninput="renderEditor();this.nextElementSibling.textContent=this.value+'%'">
+              <span class="range-val">60%</span>
+            </div>
+          </div>
+          <div class="ctrl-divider"></div>
+          <div class="ctrl-section">
+            <div class="ctrl-section-title"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Image Adjustments</div>
+            <div class="ctrl-row">
+              <label>Bright</label>
+              <input type="range" id="imgBright" min="-100" max="100" value="0" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">0</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Contrast</label>
+              <input type="range" id="imgContrast" min="-100" max="100" value="0" oninput="renderEditor();this.nextElementSibling.textContent=this.value">
+              <span class="range-val">0</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Scale</label>
+              <input type="range" id="imgScale" min="50" max="150" value="100" oninput="renderEditor();this.nextElementSibling.textContent=this.value+'%'">
+              <span class="range-val">100%</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /editor-controls -->
+    </div><!-- /editor-body -->
+    <div class="editor-footer">
+      <button class="btn-editor-reset" onclick="resetEditor()">↺ Reset</button>
+      <button class="btn-editor-apply" onclick="applyEdits()">✓ Apply & Save Sticker</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<hr class="section-divider">
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        AI Image Tools
+      </a>
+      <p>Free AI-powered profile picture maker. Remove background, circle crop, and download for any platform in seconds.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Tools</h5>
+      <ul>
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="#">BG Remover</a></li>
+        <li><a href="#">Image Resizer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="./contact.html">Contact Us</a></li>
+        <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="./terms.html">Terms of Use</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="./contact.html">Help Center</a></li>
+        <li><a href="./contact.html">Report a Bug</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">&#169; 2025 <a href="#">AI Image Tools</a>. All rights reserved. Powered by <a href="https://www.aiImageTools.com" target="_blank">Image Tools</a>.</p>
+    <span class="footer-badge">
+      <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="6"/></svg>
+      Free &amp; No Watermark
+    </span>
+  </div>
+</footer>
+
+<script>
+/* ─── Constants ─── */
+const REMOVEBG_API_KEY = 'JZYYo1yXMrFk9gEsY1eimR7V';
+const STICKER_SIZE = 512;
+
+/* ─── State ─── */
+let files = [];
+let idCounter = 0;
+
+/* ─── DOM ─── */
+const dropzone     = document.getElementById('dropzone');
+const fileInput    = document.getElementById('fileInput');
+const converterArea = document.getElementById('converterArea');
+const featuresStrip = document.getElementById('featuresStrip');
+const fileList     = document.getElementById('fileList');
+
+/* ─── Drag & Drop ─── */
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag-over');
+  handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+});
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  handleFiles(Array.from(fileInput.files));
+  fileInput.value = '';
+});
+
+/* ─── Handle files ─── */
+function handleFiles(newFiles) {
+  if (!newFiles.length) return;
+  newFiles.forEach(f => {
+    const id = ++idCounter;
+    files.push({ id, file:f, name:f.name, origSize:f.size, blob:null, outputSize:null, status:'waiting' });
+    renderCard(files[files.length-1]);
+  });
+  dropzone.style.display = 'none';
+  featuresStrip.style.display = 'none';
+  converterArea.style.display = 'block';
+  updateStats();
+  updateCountBadge();
+}
+
+/* ─── Render single card ─── */
+function renderCard(entry) {
+  const ext = (entry.file.type.split('/')[1] || 'img').toUpperCase();
+  const card = document.createElement('div');
+  card.className = 'file-card';
+  card.id = 'card-' + entry.id;
+  card.innerHTML = `
+    <div class="file-thumb" id="thumb-wrap-${entry.id}">
+      <div class="fmt-icon" id="thumb-${entry.id}" style="background:rgba(37,99,235,0.12);color:#2563eb;">${ext}</div>
+    </div>
+    <div class="file-info">
+      <div class="file-name" title="${entry.name}">${entry.name}</div>
+      <div class="file-meta">
+        <span class="file-size">${formatBytes(entry.origSize)}</span>
+        <div class="file-arrow">
+          <span class="fmt-from">${ext}</span>
+          →
+          <span class="fmt-to-sticker">512×512 WebP 🎉</span>
+        </div>
+        <span class="file-status status-waiting" id="status-${entry.id}">Waiting…</span>
+      </div>
+      <div class="file-progress" id="prog-${entry.id}">
+        <div class="file-progress-bar" id="progbar-${entry.id}"></div>
+      </div>
+    </div>
+    <div class="file-actions">
+      <button class="btn-edit" id="edit-${entry.id}" onclick="openEditor(${entry.id})" title="Edit sticker" disabled>
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </button>
+      <button class="btn-dl" id="dl-${entry.id}" disabled onclick="downloadSingle(${entry.id})">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save
+      </button>
+      <button class="btn-remove" onclick="removeFile(${entry.id})" title="Remove">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `;
+
+  // Load original thumb async
+  const thumbEl = card.querySelector('#thumb-' + entry.id);
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    img.style.cssText = 'width:68px;height:68px;object-fit:cover;border-radius:8px;';
+    img.onerror = () => {};
+    thumbEl.replaceWith(img);
+  };
+  reader.readAsDataURL(entry.file);
+
+  fileList.appendChild(card);
+}
+
+/* ─── Remove background via remove.bg API ─── */
+async function removeBackground(file) {
+  const formData = new FormData();
+  formData.append('image_file', file);
+  formData.append('size', 'auto');
+
+  const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+    method: 'POST',
+    headers: { 'X-Api-Key': REMOVEBG_API_KEY },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.errors?.[0]?.title || 'Background removal failed (API error)');
+  }
+
+  return await response.blob(); // PNG with transparency
+}
+
+/* ─── Crop & resize to 512×512 ─── */
+function cropAndResize(imgBlob, doCrop) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(imgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = STICKER_SIZE;
+      canvas.height = STICKER_SIZE;
+      const ctx = canvas.getContext('2d');
+
+      // Transparent bg
+      ctx.clearRect(0, 0, STICKER_SIZE, STICKER_SIZE);
+
+      let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+
+      if (doCrop) {
+        // Center crop to 1:1
+        if (sw > sh) { sx = (sw - sh) / 2; sw = sh; }
+        else if (sh > sw) { sy = (sh - sw) / 2; sh = sw; }
+      }
+
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, STICKER_SIZE, STICKER_SIZE);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob(b => {
+        if (b) resolve(b);
+        else reject(new Error('Canvas export failed'));
+      }, 'image/webp', 0.9);
+    };
+    img.onerror = () => reject(new Error('Could not load image'));
+    img.src = url;
+  });
+}
+
+/* ─── Convert single entry ─── */
+async function convertEntry(entry) {
+  const doRemoveBg = document.getElementById('removeBgToggle').checked;
+  const doCrop     = document.getElementById('autocropToggle').checked;
+
+  const card     = document.getElementById('card-' + entry.id);
+  const statusEl = document.getElementById('status-' + entry.id);
+  const progEl   = document.getElementById('prog-' + entry.id);
+  const progBar  = document.getElementById('progbar-' + entry.id);
+
+  card.classList.remove('done','error');
+  card.classList.add('converting');
+  statusEl.className = 'file-status status-converting';
+  progEl.style.display = 'block';
+
+  try {
+    let workingBlob = entry.file;
+
+    if (doRemoveBg) {
+      statusEl.textContent = 'Removing background…';
+      progBar.style.width = '30%';
+      workingBlob = await removeBackground(entry.file);
+    }
+
+    statusEl.textContent = 'Cropping & resizing…';
+    progBar.style.width = '70%';
+
+    const stickerBlob = await cropAndResize(workingBlob, doCrop);
+
+    entry.blob = stickerBlob;
+    entry.outputSize = stickerBlob.size;
+    entry.status = 'done';
+
+    // Update thumb to show sticker preview (with checkerboard for transparency)
+    const thumbWrap = document.getElementById('thumb-wrap-' + entry.id);
+    if (thumbWrap) {
+      const stickerUrl = URL.createObjectURL(stickerBlob);
+      const previewImg = document.createElement('img');
+      previewImg.src = stickerUrl;
+      previewImg.className = 'preview-sticker';
+      previewImg.title = 'Sticker preview (checkerboard = transparent)';
+      thumbWrap.innerHTML = '';
+      thumbWrap.appendChild(previewImg);
+    }
+
+    card.classList.remove('converting');
+    card.classList.add('done');
+    statusEl.className = 'file-status status-done';
+    statusEl.textContent = '✓ Sticker ready · ' + formatBytes(stickerBlob.size);
+    progBar.style.width = '100%';
+    document.getElementById('dl-' + entry.id).disabled = false;
+    const editBtn = document.getElementById('edit-' + entry.id);
+    if (editBtn) editBtn.disabled = false;
+
+  } catch(err) {
+    entry.status = 'error';
+    card.classList.remove('converting');
+    card.classList.add('error');
+    statusEl.className = 'file-status status-error';
+    statusEl.textContent = '✗ ' + err.message;
+  }
+}
+
+/* ─── Convert All ─── */
+async function convertAll() {
+  for (const entry of files) {
+    if (entry.status !== 'done') {
+      await convertEntry(entry);
+    }
+  }
+  updateStats();
+  const allDone = files.filter(f => f.status === 'done').length;
+  if (allDone > 0) {
+    document.getElementById('zipBtn').disabled = false;
+    document.getElementById('packBtn').disabled = false;
+  }
+}
+
+/* ─── Download single ─── */
+function downloadSingle(id) {
+  const entry = files.find(f => f.id === id);
+  if (!entry || !entry.blob) return;
+  const baseName = entry.name.replace(/\.[^.]+$/, '');
+  const url = URL.createObjectURL(entry.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = baseName + '_sticker.webp';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Download ZIP ─── */
+async function downloadPack() {
+  const done = files.filter(f => f.status === 'done' && f.blob);
+  if (!done.length) return;
+  const packName = (document.getElementById('packNameInput').value.trim() || 'sticker_pack').replace(/[^a-z0-9_\-\s]/gi,'').replace(/\s+/g,'_');
+  const zip = new JSZip();
+  const folder = zip.folder(packName);
+  done.forEach((entry, i) => {
+    const baseName = entry.name.replace(/\.[^.]+$/, '');
+    folder.file(baseName + '_sticker.webp', entry.blob);
+  });
+  const content = await zip.generateAsync({ type:'blob' });
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = url; a.download = packName + '.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── EDITOR STATE ─── */
+let editorEntryId = null;
+let editorImg = null;
+let activeEmoji = null;
+const EMOJIS = ['😂','🔥','❤️','😍','🥰','😎','🤣','😭','✨','💯','🙏','🎉','🤔','😤','🤩','💀','😊','🫶','💪','🌟','⚡','🎶','🫠','🥳','😏','🤯','💥','🌈','🍕','👑','🚀','🦋','🌸','💫','🤗','😡','🥺','👀','🫡','🍀'];
+
+function initEmojiGrid() {
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = '';
+  EMOJIS.forEach(em => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn';
+    btn.textContent = em;
+    btn.title = em;
+    btn.onclick = () => { activeEmoji = em; renderEditor(); };
+    grid.appendChild(btn);
+  });
+}
+
+function openEditor(id) {
+  const entry = files.find(f => f.id === id);
+  if (!entry || !entry.blob) return;
+  editorEntryId = id;
+  activeEmoji = null;
+  resetEditorControls();
+  const url = URL.createObjectURL(entry.blob);
+  editorImg = new Image();
+  editorImg.onload = () => { renderEditor(); URL.revokeObjectURL(url); };
+  editorImg.src = url;
+  document.getElementById('editorOverlay').classList.add('open');
+  // ensure text tab is active
+  switchTab('text', document.querySelector('.editor-tab'));
+}
+
+function closeEditor() {
+  document.getElementById('editorOverlay').classList.remove('open');
+  editorImg = null;
+  editorEntryId = null;
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.editor-tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function resetEditorControls() {
+  document.getElementById('textInput').value = '';
+  document.getElementById('fontSelect').value = 'Sora';
+  document.getElementById('textColor').value = '#ffffff';
+  document.getElementById('textStroke').value = '#000000';
+  document.getElementById('fontSize').value = 42;
+  document.getElementById('strokeWidth').value = 3;
+  document.getElementById('textBold').checked = true;
+  document.getElementById('textX').value = 50;
+  document.getElementById('textY').value = 85;
+  document.getElementById('emojiSize').value = 80;
+  document.getElementById('emojiX').value = 80;
+  document.getElementById('emojiY').value = 20;
+  document.getElementById('borderOn').checked = false;
+  document.getElementById('borderColor').value = '#ffffff';
+  document.getElementById('borderWidth').value = 10;
+  document.getElementById('borderRadius').value = 0;
+  document.getElementById('shadowOn').checked = false;
+  document.getElementById('shadowColor').value = '#000000';
+  document.getElementById('shadowBlur').value = 12;
+  document.getElementById('shadowX').value = 4;
+  document.getElementById('shadowY').value = 4;
+  document.getElementById('shadowOpacity').value = 60;
+  document.getElementById('imgBright').value = 0;
+  document.getElementById('imgContrast').value = 0;
+  document.getElementById('imgScale').value = 100;
+  // update range labels
+  document.querySelectorAll('.range-val').forEach(rv => {
+    const slider = rv.previousElementSibling;
+    if (slider && slider.type === 'range') rv.textContent = slider.value + (rv.textContent.includes('px') ? 'px' : rv.textContent.includes('%') ? '%' : '');
+  });
+  activeEmoji = null;
+}
+
+function resetEditor() { resetEditorControls(); renderEditor(); }
+
+function renderEditor() {
+  if (!editorImg) return;
+  const canvas = document.getElementById('editorCanvas');
+  const ctx = canvas.getContext('2d');
+  const S = 320;
+  canvas.width = S; canvas.height = S;
+
+  ctx.clearRect(0, 0, S, S);
+
+  // Adjustments filter
+  const bright = parseInt(document.getElementById('imgBright').value);
+  const contrast = parseInt(document.getElementById('imgContrast').value);
+  const scale = parseInt(document.getElementById('imgScale').value) / 100;
+  ctx.filter = `brightness(${1 + bright/100}) contrast(${1 + contrast/100})`;
+
+  // Draw image scaled
+  const drawSize = S * scale;
+  const drawOff = (S - drawSize) / 2;
+
+  // Shadow
+  const shadowOn = document.getElementById('shadowOn').checked;
+  if (shadowOn) {
+    const sColor = document.getElementById('shadowColor').value;
+    const sOpacity = parseInt(document.getElementById('shadowOpacity').value) / 100;
+    const sBlur = parseInt(document.getElementById('shadowBlur').value);
+    const sX = parseInt(document.getElementById('shadowX').value);
+    const sY = parseInt(document.getElementById('shadowY').value);
+    ctx.shadowColor = hexToRgba(sColor, sOpacity);
+    ctx.shadowBlur = sBlur;
+    ctx.shadowOffsetX = sX;
+    ctx.shadowOffsetY = sY;
+  } else {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+  }
+
+  ctx.drawImage(editorImg, drawOff, drawOff, drawSize, drawSize);
+  ctx.filter = 'none';
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+  // Border
+  const borderOn = document.getElementById('borderOn').checked;
+  if (borderOn) {
+    const bColor = document.getElementById('borderColor').value;
+    const bWidth = parseInt(document.getElementById('borderWidth').value);
+    const bRadius = parseInt(document.getElementById('borderRadius').value);
+    ctx.strokeStyle = bColor;
+    ctx.lineWidth = bWidth * 2;
+    const half = bWidth;
+    roundRect(ctx, half, half, S - bWidth * 2, S - bWidth * 2, bRadius);
+    ctx.stroke();
+  }
+
+  // Emoji
+  if (activeEmoji) {
+    const eSize = parseInt(document.getElementById('emojiSize').value);
+    const eX = parseInt(document.getElementById('emojiX').value) / 100 * S;
+    const eY = parseInt(document.getElementById('emojiY').value) / 100 * S;
+    ctx.font = `${eSize}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(activeEmoji, eX, eY);
+  }
+
+  // Text
+  const text = document.getElementById('textInput').value.trim();
+  if (text) {
+    const font = document.getElementById('fontSelect').value;
+    const fSize = parseInt(document.getElementById('fontSize').value);
+    const bold = document.getElementById('textBold').checked ? 'bold ' : '';
+    const tColor = document.getElementById('textColor').value;
+    const sColor = document.getElementById('textStroke').value;
+    const sWidth = parseInt(document.getElementById('strokeWidth').value);
+    const tX = parseInt(document.getElementById('textX').value) / 100 * S;
+    const tY = parseInt(document.getElementById('textY').value) / 100 * S;
+    ctx.font = `${bold}${fSize}px "${font}", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (sWidth > 0) {
+      ctx.strokeStyle = sColor;
+      ctx.lineWidth = sWidth * 2;
+      ctx.lineJoin = 'round';
+      ctx.strokeText(text, tX, tY);
+    }
+    ctx.fillStyle = tColor;
+    ctx.fillText(text, tX, tY);
+  }
+}
+
+function hexToRgba(hex, opacity) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${opacity})`;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function applyEdits() {
+  const entry = files.find(f => f.id === editorEntryId);
+  if (!entry) return;
+
+  // Render at full 512x512
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = 512; offCanvas.height = 512;
+  const ctx = offCanvas.getContext('2d');
+  const S = 512;
+  const previewCanvas = document.getElementById('editorCanvas');
+  const scale = S / 320;
+
+  ctx.clearRect(0, 0, S, S);
+
+  // Adjustments
+  const bright = parseInt(document.getElementById('imgBright').value);
+  const contrast = parseInt(document.getElementById('imgContrast').value);
+  const imgScale = parseInt(document.getElementById('imgScale').value) / 100;
+  ctx.filter = `brightness(${1 + bright/100}) contrast(${1 + contrast/100})`;
+
+  // Shadow
+  const shadowOn = document.getElementById('shadowOn').checked;
+  if (shadowOn) {
+    const sColor = document.getElementById('shadowColor').value;
+    const sOpacity = parseInt(document.getElementById('shadowOpacity').value) / 100;
+    ctx.shadowColor = hexToRgba(sColor, sOpacity);
+    ctx.shadowBlur = parseInt(document.getElementById('shadowBlur').value) * scale;
+    ctx.shadowOffsetX = parseInt(document.getElementById('shadowX').value) * scale;
+    ctx.shadowOffsetY = parseInt(document.getElementById('shadowY').value) * scale;
+  }
+
+  const drawSize = S * imgScale;
+  const drawOff = (S - drawSize) / 2;
+  ctx.drawImage(editorImg, drawOff, drawOff, drawSize, drawSize);
+  ctx.filter = 'none';
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+  // Border
+  if (document.getElementById('borderOn').checked) {
+    const bColor = document.getElementById('borderColor').value;
+    const bWidth = parseInt(document.getElementById('borderWidth').value) * scale;
+    const bRadius = parseInt(document.getElementById('borderRadius').value) * scale;
+    ctx.strokeStyle = bColor;
+    ctx.lineWidth = bWidth * 2;
+    const half = bWidth;
+    roundRect(ctx, half, half, S - bWidth * 2, S - bWidth * 2, bRadius);
+    ctx.stroke();
+  }
+
+  // Emoji
+  if (activeEmoji) {
+    const eSize = parseInt(document.getElementById('emojiSize').value) * scale;
+    const eX = parseInt(document.getElementById('emojiX').value) / 100 * S;
+    const eY = parseInt(document.getElementById('emojiY').value) / 100 * S;
+    ctx.font = `${eSize}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(activeEmoji, eX, eY);
+  }
+
+  // Text
+  const text = document.getElementById('textInput').value.trim();
+  if (text) {
+    const font = document.getElementById('fontSelect').value;
+    const fSize = parseInt(document.getElementById('fontSize').value) * scale;
+    const bold = document.getElementById('textBold').checked ? 'bold ' : '';
+    const tColor = document.getElementById('textColor').value;
+    const sColor2 = document.getElementById('textStroke').value;
+    const sWidth = parseInt(document.getElementById('strokeWidth').value) * scale;
+    const tX = parseInt(document.getElementById('textX').value) / 100 * S;
+    const tY = parseInt(document.getElementById('textY').value) / 100 * S;
+    ctx.font = `${bold}${fSize}px "${font}", sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (sWidth > 0) {
+      ctx.strokeStyle = sColor2; ctx.lineWidth = sWidth * 2; ctx.lineJoin = 'round';
+      ctx.strokeText(text, tX, tY);
+    }
+    ctx.fillStyle = tColor;
+    ctx.fillText(text, tX, tY);
+  }
+
+  offCanvas.toBlob(blob => {
+    if (!blob) return;
+    entry.blob = blob;
+    entry.outputSize = blob.size;
+    // update preview thumb
+    const thumbWrap = document.getElementById('thumb-wrap-' + entry.id);
+    if (thumbWrap) {
+      const url2 = URL.createObjectURL(blob);
+      const img2 = document.createElement('img');
+      img2.src = url2; img2.className = 'preview-sticker';
+      thumbWrap.innerHTML = ''; thumbWrap.appendChild(img2);
+    }
+    const statusEl = document.getElementById('status-' + entry.id);
+    if (statusEl) statusEl.textContent = '✓ Edited & ready · ' + formatBytes(blob.size);
+    closeEditor();
+  }, 'image/webp', 0.92);
+}
+
+// Init emoji grid on load
+initEmojiGrid();
+
+/* ─── Download ZIP ─── */
+async function downloadZip() {
+  const done = files.filter(f => f.status === 'done' && f.blob);
+  if (!done.length) return;
+  const zip = new JSZip();
+  done.forEach(entry => {
+    const baseName = entry.name.replace(/\.[^.]+$/, '');
+    zip.file(baseName + '_sticker.webp', entry.blob);
+  });
+  const content = await zip.generateAsync({ type:'blob' });
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'whatsapp_stickers.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Remove file ─── */
+function removeFile(id) {
+  files = files.filter(f => f.id !== id);
+  const card = document.getElementById('card-' + id);
+  if (card) card.remove();
+  if (files.length === 0) {
+    converterArea.style.display = 'none';
+    dropzone.style.display = '';
+    featuresStrip.style.display = '';
+  }
+  updateStats();
+  updateCountBadge();
+}
+
+/* ─── Clear all ─── */
+function clearAll() {
+  files = [];
+  fileList.innerHTML = '';
+  converterArea.style.display = 'none';
+  dropzone.style.display = '';
+  featuresStrip.style.display = '';
+  document.getElementById('zipBtn').disabled = true;
+  document.getElementById('packBtn').disabled = true;
+  updateStats();
+}
+
+/* ─── Stats ─── */
+function updateStats() {
+  const total = files.length;
+  const done  = files.filter(f => f.status === 'done');
+  const origTotal = files.reduce((s, f) => s + f.origSize, 0);
+  const outTotal  = done.reduce((s, f) => s + (f.outputSize || 0), 0);
+  document.getElementById('statTotal').textContent   = total;
+  document.getElementById('statDone').textContent    = done.length;
+  document.getElementById('statOrigSize').textContent = total ? formatBytes(origTotal) : '—';
+  document.getElementById('statOutSize').textContent  = outTotal ? formatBytes(outTotal) : '—';
+}
+
+function updateCountBadge() {
+  document.getElementById('countBadge').textContent = files.length + ' image' + (files.length !== 1 ? 's' : '');
+}
+
+/* ─── Helpers ─── */
+function formatBytes(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(2) + ' MB';
+}
+
+/* ─── FAQ ─── */
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ─── Hamburger ─── */
+const hamburger = document.querySelector('.hamburger');
+const navMenu   = document.querySelector('.nav-menu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  navMenu.classList.toggle('open');
+});
+navMenu.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    navMenu.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

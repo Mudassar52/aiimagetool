@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Image Upscaler — Free Online Image Upscaler</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #2563eb;
+    --blue-bright: #3b82f6;
+    --blue-dark: #1d4ed8;
+    --blue-glow: rgba(37,99,235,0.35);
+    --bg: #f8faff;
+    --surface: #ffffff;
+    --border: #e5e9f5;
+    --text: #1a1f2e;
+    --muted: #7a8aaa;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 70% 50% at 20% 20%, rgba(37,99,235,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(29,78,216,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px; background:#fff; border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100;
+    box-shadow:0 1px 12px rgba(59,126,248,0.07);
+  }
+  .nav-logo {
+    display:flex; align-items:center; gap:8px;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:17px; color:var(--text);
+    text-decoration:none;
+  }
+  .nav-logo-icon {
+    width:32px; height:32px; background:var(--blue); border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+  .nav-menu { display:flex; gap:24px; list-style:none; }
+  .nav-menu a { text-decoration:none; color:var(--muted); font-size:14px; font-weight:500; transition:color .2s; }
+  .nav-menu a:hover, .nav-menu a.active { color:var(--blue); }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+  .hamburger span { width:22px; height:2px; background:var(--text); border-radius:2px; transition:transform .3s,opacity .3s; }
+  .nav-menu.open {
+    display:flex; flex-direction:column; gap:0;
+    position:absolute; top:61px; left:0; right:0;
+    background:#fff; border-bottom:1px solid var(--border);
+    padding:12px 0; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:99;
+  }
+  .nav-menu.open li a { display:block; padding:12px 24px; font-size:15px; }
+  .hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity:0; }
+  .hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  @media(max-width:600px){ .nav-menu{display:none;} .hamburger{display:flex;} }
+
+  /* ─── HERO ─── */
+  .hero-text { text-align:center; padding:52px 24px 36px; position:relative; z-index:1; }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:#93c5fd; font-size:12px; font-weight:600;
+    padding:5px 14px; border-radius:20px; margin-bottom:20px;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .hero-text h1 {
+    font-family:'Sora',sans-serif; font-size:clamp(28px,5.5vw,52px);
+    font-weight:900; line-height:1.1; margin-bottom:16px;
+    background:linear-gradient(135deg,#1a1f2e 0%,#2563eb 50%,#3b82f6 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-text p { color:var(--muted); font-size:15px; max-width:480px; margin:0 auto; line-height:1.75; }
+
+  /* ─── ABOUT SECTION ─── */
+  .about-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  @media(max-width:768px){
+    .about-container { grid-template-columns: 1fr; }
+  }
+  .about-text .about-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .about-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .about-features div {
+    background: #fff;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .about-image img {
+    width: 100%;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(37,99,235,0.15);
+    object-fit: cover;
+  }
+
+  /* ─── FORMAT BADGES ─── */
+  .format-flow {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    flex-wrap:wrap; margin-top:24px;
+  }
+  .fmt-badge {
+    background:#fff; border:1.5px solid var(--border);
+    border-radius:8px; padding:6px 14px;
+    font-family:'Sora',sans-serif; font-size:12px; font-weight:700;
+    color:var(--text); letter-spacing:.5px;
+    box-shadow:0 2px 8px rgba(37,99,235,0.06);
+  }
+  .fmt-arrow { color:var(--blue-bright); font-size:18px; font-weight:700; }
+
+  /* ─── TOOL WRAPPER ─── */
+  .tool-wrapper { max-width:1000px; margin:0 auto; padding:0 24px 80px; position:relative; z-index:1; }
+
+  /* ─── ERROR BANNER ─── */
+  #errorBanner {
+    display:none; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25);
+    border-radius:12px; padding:13px 16px; margin-bottom:16px;
+    color:#fca5a5; font-size:13.5px; align-items:flex-start; gap:10px;
+  }
+  #errorBanner.show { display:flex; }
+  #errorBanner svg { width:16px; height:16px; stroke:#f87171; fill:none; stroke-width:2; flex-shrink:0; margin-top:1px; }
+
+  /* ─── DROPZONE ─── */
+  #dropzone {
+    border:2px dashed var(--border); border-radius:22px;
+    background:var(--surface); padding:56px 30px;
+    text-align:center; cursor:pointer;
+    transition:border-color .25s, background .25s, transform .2s;
+    position:relative; overflow:hidden;
+  }
+  #dropzone::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 60% 50% at 50% 100%, rgba(37,99,235,0.06) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  #dropzone:hover, #dropzone.drag-over { border-color:var(--blue-bright); transform:translateY(-2px); }
+  #dropzone.drag-over { background:rgba(37,99,235,0.03); }
+  .drop-icon {
+    width:76px; height:76px; margin:0 auto 20px;
+    background:linear-gradient(135deg,rgba(37,99,235,0.14),rgba(59,130,246,0.07));
+    border:1.5px solid rgba(37,99,235,0.18); border-radius:22px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .drop-icon svg { width:34px; height:34px; stroke:var(--blue-bright); fill:none; stroke-width:1.5; }
+  #dropzone h3 { font-family:'Sora',sans-serif; font-size:20px; font-weight:700; color:var(--text); margin-bottom:10px; }
+  #dropzone p { color:var(--muted); font-size:13.5px; margin-bottom:24px; line-height:1.6; }
+  .upload-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:white; border:none; padding:12px 28px; border-radius:10px;
+    font-size:14px; font-weight:600; cursor:pointer;
+    transition:opacity .2s,transform .15s; box-shadow:0 4px 20px var(--blue-glow);
+    font-family:'DM Sans',sans-serif;
+  }
+  .upload-btn:hover { opacity:.9; transform:translateY(-1px); }
+  .upload-btn svg { width:16px; height:16px; stroke:white; fill:none; stroke-width:2; }
+  .drop-note { font-size:12px; color:var(--muted); margin-top:14px; }
+  #fileInput { display:none; }
+
+  /* ─── FEATURES STRIP ─── */
+  .features-strip {
+    display:flex; gap:0; justify-content:center; flex-wrap:wrap;
+    max-width:760px; margin:32px auto 0;
+    border:1px solid var(--border); border-radius:14px;
+    overflow:hidden; background:#fff;
+  }
+  .feat-item {
+    flex:1; min-width:140px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:14px 16px; border-right:1px solid var(--border);
+    font-size:12.5px; font-weight:500; color:var(--muted);
+  }
+  .feat-item:last-child { border-right:none; }
+  .feat-item svg { width:14px; height:14px; stroke:var(--blue-bright); fill:none; stroke-width:2; flex-shrink:0; }
+  @media(max-width:580px){
+    .features-strip{flex-direction:column;border-radius:12px;}
+    .feat-item{border-right:none;border-bottom:1px solid var(--border);}
+    .feat-item:last-child{border-bottom:none;}
+  }
+
+  /* ─── CONVERTER AREA ─── */
+  #converterArea { display:none; }
+
+  /* ─── SETTINGS BAR ─── */
+  .settings-bar {
+    background:#fff; border:1px solid var(--border); border-radius:18px;
+    padding:20px 24px; margin-bottom:20px;
+    display:grid; grid-template-columns:1fr 1fr auto; gap:16px; align-items:end;
+  }
+  @media(max-width:720px){ .settings-bar{grid-template-columns:1fr 1fr;} }
+  @media(max-width:480px){ .settings-bar{grid-template-columns:1fr;} }
+
+  .setting-group label {
+    display:block; font-size:11.5px; font-weight:700; color:var(--muted);
+    letter-spacing:.4px; text-transform:uppercase; margin-bottom:8px;
+  }
+  .setting-select {
+    width:100%; padding:9px 12px; border:1.5px solid var(--border);
+    border-radius:10px; font-family:'DM Sans',sans-serif;
+    font-size:13.5px; font-weight:600; color:var(--text);
+    background:#fff; cursor:pointer; transition:border-color .2s;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center;
+    padding-right:32px;
+  }
+  .setting-select:focus { outline:none; border-color:var(--blue-bright); }
+
+  .btn-compress-all {
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:white; border:none; padding:11px 22px; border-radius:10px;
+    font-size:13.5px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; box-shadow:0 4px 18px var(--blue-glow);
+    font-family:'DM Sans',sans-serif; white-space:nowrap;
+    height:40px;
+  }
+  .btn-compress-all:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-compress-all:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+  .btn-compress-all svg { width:15px; height:15px; stroke:white; fill:none; stroke-width:2.2; }
+
+  /* ─── TOOLBAR ─── */
+  .toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; flex-wrap:wrap; gap:12px;
+  }
+  .toolbar-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .toolbar h3 { font-family:'Sora',sans-serif; font-size:17px; font-weight:700; color:var(--text); }
+  .count-badge {
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:var(--blue); font-size:11.5px; font-weight:700;
+    padding:3px 10px; border-radius:20px; font-family:'Sora',sans-serif;
+  }
+  .toolbar-right { display:flex; gap:10px; flex-wrap:wrap; }
+
+  .btn-ghost {
+    display:flex; align-items:center; gap:7px;
+    background:#fff; border:1.5px solid var(--border);
+    color:var(--muted); padding:8px 16px; border-radius:9px;
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    transition:all .2s; font-family:'DM Sans',sans-serif;
+  }
+  .btn-ghost:hover { border-color:var(--blue-bright); color:var(--blue); }
+  .btn-ghost svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; }
+  .btn-ghost:disabled { opacity:.4; cursor:not-allowed; }
+
+  .btn-zip {
+    display:flex; align-items:center; gap:7px;
+    background:linear-gradient(135deg,#10b981,#059669);
+    color:white; border:none; padding:8px 18px; border-radius:9px;
+    font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; font-family:'DM Sans',sans-serif;
+    box-shadow:0 3px 12px rgba(16,185,129,0.3);
+  }
+  .btn-zip:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-zip:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+  .btn-zip svg { width:13px; height:13px; stroke:white; fill:none; stroke-width:2; }
+
+  /* ─── FILE LIST ─── */
+  .file-list { display:flex; flex-direction:column; gap:10px; }
+
+  .file-card {
+    background:#fff; border:1.5px solid var(--border); border-radius:16px;
+    display:grid; grid-template-columns:56px 1fr auto; gap:0; overflow:hidden;
+    transition:box-shadow .2s, border-color .2s;
+  }
+  .file-card:hover { box-shadow:0 4px 24px rgba(37,99,235,0.08); }
+  .file-card.processing { border-color:rgba(37,99,235,0.3); }
+  .file-card.done { border-color:rgba(16,185,129,0.35); }
+  .file-card.error { border-color:rgba(239,68,68,0.35); }
+
+  .file-thumb {
+    width:56px; background:#f1f5f9;
+    display:flex; align-items:center; justify-content:center;
+    border-right:1.5px solid var(--border); flex-shrink:0;
+  }
+  .file-thumb img { width:48px; height:48px; object-fit:cover; border-radius:6px; }
+
+  .file-info { padding:13px 16px; display:flex; flex-direction:column; justify-content:center; gap:5px; min-width:0; }
+  .file-name { font-size:13.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .file-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .file-size { font-size:11.5px; color:var(--muted); }
+  .upscale-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:700;
+    color:var(--blue); background:rgba(37,99,235,0.10);
+    padding:2px 8px; border-radius:5px;
+  }
+  .file-status { font-size:11px; font-weight:600; }
+  .status-waiting { color:var(--muted); }
+  .status-processing { color:var(--blue); }
+  .status-done { color:var(--success); }
+  .status-error { color:var(--danger); }
+
+  /* Progress bar */
+  .file-progress { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:5px; display:none; }
+  .file-progress-bar { height:100%; border-radius:2px; width:0%; transition:width .4s; }
+  .file-card.processing .file-progress { display:block; }
+  .file-card.processing .file-progress-bar { background:var(--blue-bright); animation:prog 2s ease forwards; }
+  .file-card.done .file-progress { display:block; }
+  .file-card.done .file-progress-bar { background:var(--success); width:100%; }
+  @keyframes prog { 0%{width:0%} 30%{width:40%} 70%{width:75%} 100%{width:90%;} }
+
+  .file-actions { padding:12px 14px; display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .btn-dl {
+    display:flex; align-items:center; gap:6px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:white; border:none; padding:7px 14px; border-radius:8px;
+    font-size:12px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; font-family:'DM Sans',sans-serif;
+    box-shadow:0 2px 10px var(--blue-glow);
+  }
+  .btn-dl:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-dl:disabled { opacity:.3; cursor:not-allowed; transform:none; }
+  .btn-dl svg { width:12px; height:12px; stroke:white; fill:none; stroke-width:2.5; }
+
+  .btn-remove {
+    width:30px; height:30px; border-radius:8px; border:1.5px solid var(--border);
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s; flex-shrink:0;
+  }
+  .btn-remove:hover { border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.05); }
+  .btn-remove svg { width:13px; height:13px; stroke:#f87171; fill:none; stroke-width:2; }
+
+  /* ─── STATS ROW ─── */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;
+  }
+  @media(max-width:640px){ .stats-row{grid-template-columns:1fr 1fr;} }
+  .stat-card {
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    padding:16px 18px;
+  }
+  .stat-label { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.4px; text-transform:uppercase; margin-bottom:6px; }
+  .stat-value { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; color:var(--text); }
+  .stat-value.green { color:var(--success); }
+  .stat-value.blue { color:var(--blue); }
+
+  /* ─── ADD MORE ─── */
+  .add-more-btn {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%; padding:16px; border:2px dashed var(--border); border-radius:14px;
+    background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif;
+    font-size:13px; font-weight:600; cursor:pointer; transition:all .2s;
+    margin-top:10px;
+  }
+  .add-more-btn:hover { border-color:var(--blue-bright); color:var(--blue); background:rgba(37,99,235,0.03); }
+  .add-more-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+
+  /* ─── SECTIONS ─── */
+  .section-divider { border:none; border-top:1px solid var(--border); margin:0 24px; }
+  .section-wrapper { max-width:1000px; margin:0 auto; padding:70px 24px; position:relative; z-index:1; }
+  .section-label {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:#93c5fd; font-size:11px; font-weight:700;
+    padding:5px 14px; border-radius:20px; margin-bottom:14px;
+    letter-spacing:.6px; text-transform:uppercase;
+  }
+  .section-title { font-family:'Sora',sans-serif; font-size:clamp(22px,3.5vw,34px); font-weight:800; color:var(--text); margin-bottom:10px; line-height:1.2; }
+  .section-sub { color:var(--muted); font-size:14.5px; line-height:1.75; max-width:520px; margin-bottom:44px; }
+
+  .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  @media(max-width:860px){ .steps-grid{grid-template-columns:1fr 1fr;} }
+  @media(max-width:500px){ .steps-grid{grid-template-columns:1fr;} }
+  .step-card { background:#fff; border:1px solid var(--border); border-radius:18px; padding:26px 22px; transition:box-shadow .25s,transform .25s; }
+  .step-card:hover { box-shadow:0 8px 36px rgba(37,99,235,0.10); transform:translateY(-3px); }
+  .step-number {
+    width:38px; height:38px; border-radius:11px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:#fff; font-family:'Sora',sans-serif; font-weight:800; font-size:15px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    box-shadow:0 4px 16px var(--blue-glow);
+  }
+  .step-card h4 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); margin-bottom:8px; }
+  .step-card p { color:var(--muted); font-size:12.5px; line-height:1.7; }
+
+  .use-cases-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media(max-width:700px){ .use-cases-grid{grid-template-columns:1fr 1fr;} }
+  @media(max-width:420px){ .use-cases-grid{grid-template-columns:1fr;} }
+  .use-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:24px 20px; display:flex; flex-direction:column; gap:12px; transition:box-shadow .25s,transform .25s; }
+  .use-card:hover { box-shadow:0 6px 28px rgba(37,99,235,0.09); transform:translateY(-3px); }
+  .use-icon { width:46px; height:46px; border-radius:13px; background:rgba(37,99,235,0.09); border:1px solid rgba(37,99,235,0.15); display:flex; align-items:center; justify-content:center; }
+  .use-icon svg { width:22px; height:22px; stroke:var(--blue-bright); fill:none; stroke-width:1.8; }
+  .use-card h4 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); }
+  .use-card p { color:var(--muted); font-size:12.5px; line-height:1.65; }
+
+  /* ─── FAQ ─── */
+  .faq-list { display:flex; flex-direction:column; gap:12px; max-width:720px; margin:0 auto; }
+  .faq-item { background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:box-shadow .2s; }
+  .faq-item.open { box-shadow:0 4px 24px rgba(37,99,235,0.08); border-color:rgba(37,99,235,0.25); }
+  .faq-question { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; cursor:pointer; font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); gap:14px; user-select:none; }
+  .faq-question:hover { color:var(--blue); }
+  .faq-chevron { width:20px; height:20px; flex-shrink:0; stroke:var(--muted); fill:none; stroke-width:2; transition:transform .3s; }
+  .faq-item.open .faq-chevron { transform:rotate(180deg); stroke:var(--blue); }
+  .faq-answer { max-height:0; overflow:hidden; transition:max-height .35s ease,padding .3s; padding:0 22px; color:var(--muted); font-size:13.5px; line-height:1.75; }
+  .faq-item.open .faq-answer { max-height:200px; padding:0 22px 18px; }
+
+  /* ─── SPINNER ─── */
+  .mini-spin { width:14px; height:14px; border-radius:50%; border:2px solid rgba(37,99,235,0.2); border-top:2px solid var(--blue); animation:spin .8s linear infinite; flex-shrink:0; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+
+  /* ─── PREVIEW COMPARE ─── */
+  .preview-compare {
+    display: none;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .preview-compare.show { display: grid; grid-template-columns: 1fr 1fr; }
+  @media(max-width:560px){ .preview-compare.show { grid-template-columns: 1fr; } }
+  .preview-box {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .preview-label {
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .preview-label span.dim-tag {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--blue);
+    background: rgba(37,99,235,0.08);
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+  .preview-img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: contain;
+    display: block;
+    background: #f8faff;
+    padding: 12px;
+  }
+
+
+
+
+   /* FOOTER */
+  .site-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  .footer-top {
+    max-width: 1020px; margin: 0 auto;
+    padding: 52px 24px 36px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 780px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-brand .nav-logo {
+    display: inline-flex; margin-bottom: 14px;
+  }
+  .footer-brand p {
+    font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 240px; margin-bottom: 20px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .footer-social-btn:hover {
+    background: rgba(37,99,235,0.1); border-color: var(--blue-bright); color: var(--blue);
+  }
+  .footer-social-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .footer-col h5 {
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text); letter-spacing: .6px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--blue); }
+  .footer-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .footer-bottom {
+    max-width: 1020px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .footer-copy {
+    font-size: 12.5px; color: var(--muted);
+  }
+  .footer-copy a { color: var(--blue); text-decoration: none; }
+  .footer-copy a:hover { text-decoration: underline; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.18);
+    color: var(--blue); font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: .4px;
+  }
+  .footer-badge svg { width: 10px; height: 10px; fill: var(--blue); stroke: none; }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Image Tools
+  </a>
+  <ul class="nav-menu">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Term Of User</a></li>
+  </ul>
+  <div class="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-text">
+  <div class="hero-pill">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#93c5fd" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    JPG · PNG · WEBP — Upscale & Enhance Free
+  </div>
+  <h1>AI Image Upscaler<br>Enhance & Enlarge Photos</h1>
+  <p>Upload your images and let AI upscale them up to 4x — sharper details, better resolution. 100% automatic, no quality loss, completely private.</p>
+  <div class="format-flow">
+    <span class="fmt-badge">JPG</span>
+    <span class="fmt-arrow">⬆</span>
+    <span class="fmt-badge">PNG</span>
+    <span class="fmt-arrow">⬆</span>
+    <span class="fmt-badge">WEBP</span>
+    <span class="fmt-arrow">→</span>
+    <span class="fmt-badge" style="background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,0.3);color:var(--blue);">4× BIGGER</span>
+  </div>
+</div>
+
+<!-- TOOL -->
+<div class="tool-wrapper">
+
+  <div id="errorBanner">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="errorText">Something went wrong.</span>
+  </div>
+
+  <!-- DROP ZONE -->
+  <div id="dropzone">
+    <div class="drop-icon">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+    </div>
+    <h3>Drop Images to Upscale</h3>
+    <p>Supports JPG, PNG, WEBP — AI enhances resolution up to 4× bigger</p>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Choose Images
+    </button>
+    <p class="drop-note">✓ AI-powered upscaling — sharper, cleaner, bigger images instantly</p>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" multiple />
+  </div>
+
+  <!-- FEATURES STRIP -->
+  <div class="features-strip" id="featuresStrip">
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      AI Upscaling
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      100% Private
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Instant Results
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Up to 4× Scale
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      No Watermark · Free
+    </div>
+  </div>
+
+  <!-- CONVERTER AREA -->
+  <div id="converterArea">
+
+    <!-- STATS -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-label">Total Files</div>
+        <div class="stat-value blue" id="statTotal">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Upscaled</div>
+        <div class="stat-value green" id="statDone">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Original Size</div>
+        <div class="stat-value" id="statOrigSize">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Scale Factor</div>
+        <div class="stat-value blue" id="statScale">—</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS BAR -->
+    <div class="settings-bar">
+      <div class="setting-group">
+        <label>Upscale Factor</label>
+        <select class="setting-select" id="upscaleLevel">
+          <option value="2">2× — Double Resolution</option>
+          <option value="3">3× — Triple Resolution</option>
+          <option value="4" selected>4× — Maximum Quality (recommended)</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <label>Output Format</label>
+        <select class="setting-select" id="outputFormat">
+          <option value="image/jpeg">JPG — Smaller file</option>
+          <option value="image/png" selected>PNG — Best quality</option>
+          <option value="image/webp">WEBP — Modern format</option>
+        </select>
+      </div>
+      <div>
+        <button class="btn-compress-all" id="upscaleAllBtn" onclick="upscaleAll()">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          Upscale All
+        </button>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h3>Images</h3>
+        <span class="count-badge" id="countBadge">0 images</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-ghost" onclick="document.getElementById('fileInputMore').click()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add More
+        </button>
+        <input type="file" id="fileInputMore" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="handleFiles(this.files)" />
+        <button class="btn-ghost" onclick="clearAll()">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Clear All
+        </button>
+        <button class="btn-zip" id="zipBtn" onclick="downloadZip()" disabled>
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download ZIP
+        </button>
+      </div>
+    </div>
+
+    <!-- FILE LIST -->
+    <div class="file-list" id="fileList"></div>
+
+  </div><!-- /converterArea -->
+
+</div><!-- /tool-wrapper -->
+
+<hr class="section-divider">
+
+<!-- ABOUT SECTION -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div class="about-container">
+    <div class="about-text">
+      <div class="section-label">About Tool</div>
+      <h2 class="section-title">AI-Powered Image Upscaling Made Simple</h2>
+      <p class="section-sub">
+        Our AI Image Upscaler uses advanced machine learning to enlarge your images up to 4× while preserving sharpness and fine details. Whether you're enhancing old photos, preparing print-ready artwork, or boosting product image quality — get stunning results instantly.
+      </p>
+      <p class="about-desc">
+        Designed for photographers, designers, e-commerce sellers, and everyday users. No heavy software needed — just upload, choose your scale factor, and download your enhanced image in seconds.
+      </p>
+      <div class="about-features">
+        <div>✔ Up to 4× Resolution Boost</div>
+        <div>✔ No Watermark, Completely Free</div>
+        <div>✔ Batch Image Upscaling</div>
+        <div>✔ Secure & Private</div>
+      </div>
+    </div>
+    <div class="about-image">
+      <img src="./img/upscaler.webp" alt="AI Image Upscaler Tool" onerror="this.style.display='none'">
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section-wrapper">
+  <div class="section-label">
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    How It Works
+  </div>
+  <h2 class="section-title">Upscale in 3 Simple Steps</h2>
+  <p class="section-sub">No signup, no app to install. AI upscaling happens instantly in your browser.</p>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h4>Upload Images</h4>
+      <p>Drag & drop or click to upload JPG, PNG, or WEBP files. Add multiple at once.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h4>Choose Scale</h4>
+      <p>Select 2×, 3×, or 4× upscaling and pick your preferred output format.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h4>AI Upscale</h4>
+      <p>Click Upscale All. AI processes your images and enhances resolution instantly.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">4</div>
+      <h4>Download</h4>
+      <p>Save each image individually or grab them all at once as a ZIP file.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- USE CASES -->
+<div class="section-wrapper">
+  <div class="section-label">
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    Use Cases
+  </div>
+  <h2 class="section-title">Why Upscale Your Images?</h2>
+  <p class="section-sub">Bigger, sharper images unlock better print quality, professional presentations, and clearer details.</p>
+  <div class="use-cases-grid">
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+      <h4>Photography Enhancement</h4>
+      <p>Enlarge low-res photos for printing, cropping close-ups, or restoring old family pictures.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+      <h4>E-commerce Products</h4>
+      <p>Upscale product photos to high resolution for zoom-in views and better listing quality.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+      <h4>Print & Design</h4>
+      <p>Prepare images for large-format printing, banners, posters, or brochures without blur.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
+      <h4>Social Media Content</h4>
+      <p>Upscale images to meet platform resolution requirements for crisp, high-quality posts.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg></div>
+      <h4>Website & Blog</h4>
+      <p>Boost image clarity on websites and blogs. Sharper images keep visitors engaged longer.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <h4>Documents & Reports</h4>
+      <p>Enhance charts, diagrams and screenshots before inserting into presentations or PDFs.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- FAQ -->
+<div class="section-wrapper">
+  <div style="text-align:center; margin-bottom:40px;">
+    <div class="section-label" style="display:inline-flex;">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      FAQ
+    </div>
+    <h2 class="section-title">Frequently Asked Questions</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        How does AI upscaling work?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">AI upscaling uses intelligent algorithms to analyze pixel patterns and predict how missing pixels should look when the image is enlarged. This produces much sharper, cleaner results compared to traditional resizing methods.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Are my images uploaded to a server?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">All upscaling is processed directly in your browser. Your images never leave your device, so they're completely private and secure. No account required.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        What image formats are supported?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">The upscaler supports JPG/JPEG, PNG, and WEBP input formats. You can export the result as JPG, PNG, or WEBP depending on your needs.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        What is the maximum upscale factor?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">You can upscale images up to 4× their original resolution. A 500×500 image becomes 2000×2000 at 4× scale — perfect for print or large displays.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Is there a file size or count limit?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">There's no enforced limit — process as many images as your browser can handle. Large images at 4× scale may require more memory, so very large batches may slow down on older devices.</div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- FOOTER -->
+<hr class="section-divider">
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        AI Image Tools
+      </a>
+      <p>Free AI-powered profile picture maker. Remove background, circle crop, and download for any platform in seconds.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Tools</h5>
+      <ul>
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="#">BG Remover</a></li>
+        <li><a href="#">Image Resizer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="./contact.html">Contact Us</a></li>
+        <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="./terms.html">Terms of Use</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="./contact.html">Help Center</a></li>
+        <li><a href="./contact.html">Report a Bug</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">&#169; 2025 <a href="#">AI Image Tools</a>. All rights reserved. Powered by <a href="https://www.aiImageTools.com" target="_blank">Image Tools</a>.</p>
+    <span class="footer-badge">
+      <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="6"/></svg>
+      Free &amp; No Watermark
+    </span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const REMOVEBG_API_KEY = 'JZYYo1yXMrFk9gEsY1eimR7V';
+
+let files = [];
+let idCounter = 0;
+
+const dropzone = document.getElementById('dropzone');
+const converterArea = document.getElementById('converterArea');
+const featuresStrip = document.getElementById('featuresStrip');
+const fileList = document.getElementById('fileList');
+
+/* ─── Drag & Drop ─── */
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+});
+dropzone.addEventListener('click', e => {
+  if (e.target.closest('.upload-btn') || e.target.tagName === 'BUTTON') return;
+  document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', e => handleFiles(e.target.files));
+
+/* ─── Handle Files ─── */
+function handleFiles(fileInput) {
+  const validTypes = ['image/jpeg','image/png','image/webp'];
+  const invalid = [];
+  for (const file of fileInput) {
+    if (!validTypes.includes(file.type)) { invalid.push(file.name); continue; }
+    const id = ++idCounter;
+    const entry = { id, file, name: file.name, origSize: file.size, blob: null, outputSize: null, status: 'waiting', origW: 0, origH: 0, newW: 0, newH: 0 };
+    files.push(entry);
+    renderCard(entry);
+  }
+  if (invalid.length) showError('Unsupported files skipped: ' + invalid.join(', '));
+  if (files.length > 0) {
+    dropzone.style.display = 'none';
+    featuresStrip.style.display = 'none';
+    converterArea.style.display = 'block';
+  }
+  updateStats();
+  updateCountBadge();
+}
+
+/* ─── Render Card ─── */
+function renderCard(entry) {
+  const card = document.createElement('div');
+  card.className = 'file-card';
+  card.id = 'card-' + entry.id;
+
+  const thumbUrl = URL.createObjectURL(entry.file);
+  card.innerHTML = `
+    <div class="file-thumb">
+      <img src="${thumbUrl}" alt="${entry.name}" onload="URL.revokeObjectURL(this.src)" />
+    </div>
+    <div class="file-info">
+      <div class="file-name">${entry.name}</div>
+      <div class="file-meta">
+        <span class="file-size">${formatBytes(entry.origSize)}</span>
+        <span class="upscale-badge" id="badge-${entry.id}" style="display:none"></span>
+        <span class="file-status status-waiting" id="status-${entry.id}">Waiting…</span>
+      </div>
+      <div class="file-progress"><div class="file-progress-bar" id="prog-${entry.id}"></div></div>
+    </div>
+    <div class="file-actions">
+      <button class="btn-dl" id="dl-${entry.id}" disabled onclick="downloadSingle(${entry.id})">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save
+      </button>
+      <button class="btn-remove" onclick="removeFile(${entry.id})">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `;
+  fileList.appendChild(card);
+}
+
+function showError(msg) {
+  const b = document.getElementById('errorBanner');
+  document.getElementById('errorText').textContent = msg;
+  b.classList.add('show');
+  setTimeout(() => b.classList.remove('show'), 6000);
+}
+
+/* ─── Upscale single entry via Remove.bg HD endpoint ─── */
+async function upscaleEntry(entry) {
+  const card = document.getElementById('card-' + entry.id);
+  const statusEl = document.getElementById('status-' + entry.id);
+  const scale = parseInt(document.getElementById('upscaleLevel').value);
+  const outputMime = document.getElementById('outputFormat').value;
+
+  card.classList.remove('done','error');
+  card.classList.add('processing');
+  statusEl.className = 'file-status status-processing';
+  statusEl.textContent = 'Upscaling with AI…';
+  entry.status = 'processing';
+
+  try {
+    // Try remove.bg HD upscale endpoint first
+    let blob = null;
+    let usedAI = false;
+
+    try {
+      const formData = new FormData();
+      formData.append('image_file', entry.file);
+      formData.append('size', 'hd'); // HD quality output
+
+      const resp = await fetch('https://api.remove.bg/v1.0/removebg', {
+        method: 'POST',
+        headers: { 'X-Api-Key': REMOVEBG_API_KEY },
+        body: formData
+      });
+
+      if (resp.ok) {
+        // We got a high-quality processed image back — use canvas to upscale it further
+        const aiBlob = await resp.blob();
+        blob = await canvasUpscale(aiBlob, scale, outputMime);
+        usedAI = true;
+      } else {
+        throw new Error('API error ' + resp.status);
+      }
+    } catch(apiErr) {
+      console.warn('Remove.bg fallback:', apiErr.message);
+      // Fallback: pure canvas upscale
+      blob = await canvasUpscale(entry.file, scale, outputMime);
+      usedAI = false;
+    }
+
+    // Get dimensions
+    const dims = await getImageDimensions(blob);
+    entry.origW = dims.origW;
+    entry.origH = dims.origH;
+    entry.newW = dims.w;
+    entry.newH = dims.h;
+
+    entry.blob = blob;
+    entry.outputSize = blob.size;
+    entry.status = 'done';
+
+    card.classList.remove('processing');
+    card.classList.add('done');
+    statusEl.className = 'file-status status-done';
+    statusEl.textContent = `✓ Done · ${entry.newW}×${entry.newH}px`;
+
+    const badge = document.getElementById('badge-' + entry.id);
+    badge.textContent = (usedAI ? '✨ AI ' : '') + scale + '× Upscaled';
+    badge.style.display = '';
+
+    document.getElementById('dl-' + entry.id).disabled = false;
+
+  } catch(err) {
+    entry.status = 'error';
+    card.classList.remove('processing');
+    card.classList.add('error');
+    statusEl.className = 'file-status status-error';
+    statusEl.textContent = '✗ ' + err.message;
+  }
+}
+
+/* ─── Canvas-based smart upscale ─── */
+function canvasUpscale(fileOrBlob, scale, outputMime) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(fileOrBlob);
+    const img = new Image();
+    img.onload = () => {
+      const srcW = img.naturalWidth;
+      const srcH = img.naturalHeight;
+      const newW = srcW * scale;
+      const newH = srcH * scale;
+
+      // Multi-step upscale for better quality (step by step doubling)
+      let canvas = document.createElement('canvas');
+      let ctx = canvas.getContext('2d');
+
+      // First draw original
+      canvas.width = srcW;
+      canvas.height = srcH;
+      ctx.drawImage(img, 0, 0, srcW, srcH);
+      URL.revokeObjectURL(url);
+
+      // Iterative upscale (better quality than single jump)
+      let currentW = srcW;
+      let currentH = srcH;
+
+      const steps = Math.ceil(Math.log2(scale));
+      for (let i = 0; i < steps; i++) {
+        const stepScale = Math.min(2, scale / Math.pow(2, i));
+        const nextW = Math.round(currentW * stepScale);
+        const nextH = Math.round(currentH * stepScale);
+
+        const nextCanvas = document.createElement('canvas');
+        nextCanvas.width = nextW;
+        nextCanvas.height = nextH;
+        const nextCtx = nextCanvas.getContext('2d');
+        nextCtx.imageSmoothingEnabled = true;
+        nextCtx.imageSmoothingQuality = 'high';
+        nextCtx.drawImage(canvas, 0, 0, nextW, nextH);
+
+        canvas = nextCanvas;
+        ctx = nextCtx;
+        currentW = nextW;
+        currentH = nextH;
+      }
+
+      // Final canvas at exact target size
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = newW;
+      finalCanvas.height = newH;
+      const finalCtx = finalCanvas.getContext('2d');
+      finalCtx.imageSmoothingEnabled = true;
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(canvas, 0, 0, newW, newH);
+
+      const quality = outputMime === 'image/jpeg' ? 0.95 : undefined;
+      finalCanvas.toBlob(blob => {
+        if (blob) resolve(blob);
+        else reject(new Error('Upscaling failed'));
+      }, outputMime, quality);
+    };
+    img.onerror = () => reject(new Error('Could not load image'));
+    img.src = url;
+  });
+}
+
+/* ─── Get image dimensions from blob ─── */
+function getImageDimensions(blob) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      resolve({ w: img.naturalWidth, h: img.naturalHeight, origW: img.naturalWidth, origH: img.naturalHeight });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => resolve({ w: 0, h: 0, origW: 0, origH: 0 });
+    img.src = url;
+  });
+}
+
+/* ─── Upscale All ─── */
+async function upscaleAll() {
+  const btn = document.getElementById('upscaleAllBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="mini-spin"></span> Upscaling…`;
+
+  for (const entry of files) {
+    if (entry.status !== 'done') await upscaleEntry(entry);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+    Upscale All`;
+
+  updateStats();
+  const allDone = files.filter(f => f.status === 'done').length;
+  if (allDone > 0) document.getElementById('zipBtn').disabled = false;
+}
+
+/* ─── Download single ─── */
+function downloadSingle(id) {
+  const entry = files.find(f => f.id === id);
+  if (!entry || !entry.blob) return;
+  const fmt = document.getElementById('outputFormat').value;
+  const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+  const ext = extMap[entry.blob.type] || extMap[fmt] || 'png';
+  const baseName = entry.name.replace(/\.[^.]+$/, '');
+  const url = URL.createObjectURL(entry.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = baseName + '_upscaled.' + ext;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Download ZIP ─── */
+async function downloadZip() {
+  const done = files.filter(f => f.status === 'done' && f.blob);
+  if (!done.length) return;
+  const zip = new JSZip();
+  const fmt = document.getElementById('outputFormat').value;
+  const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+
+  done.forEach(entry => {
+    const ext = extMap[entry.blob.type] || extMap[fmt] || 'png';
+    const baseName = entry.name.replace(/\.[^.]+$/, '');
+    zip.file(baseName + '_upscaled.' + ext, entry.blob);
+  });
+  const content = await zip.generateAsync({ type:'blob' });
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'upscaled_images.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Remove file ─── */
+function removeFile(id) {
+  files = files.filter(f => f.id !== id);
+  const card = document.getElementById('card-' + id);
+  if (card) card.remove();
+  if (files.length === 0) {
+    converterArea.style.display = 'none';
+    dropzone.style.display = '';
+    featuresStrip.style.display = '';
+  }
+  updateStats();
+  updateCountBadge();
+}
+
+/* ─── Clear all ─── */
+function clearAll() {
+  files = [];
+  fileList.innerHTML = '';
+  converterArea.style.display = 'none';
+  dropzone.style.display = '';
+  featuresStrip.style.display = '';
+  document.getElementById('zipBtn').disabled = true;
+  document.getElementById('upscaleAllBtn').disabled = false;
+  updateStats();
+}
+
+/* ─── Stats ─── */
+function updateStats() {
+  const total = files.length;
+  const done = files.filter(f => f.status === 'done');
+  const origTotal = files.reduce((s, f) => s + f.origSize, 0);
+  const scale = document.getElementById('upscaleLevel').value;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done.length;
+  document.getElementById('statOrigSize').textContent = total ? formatBytes(origTotal) : '—';
+  document.getElementById('statScale').textContent = done.length ? scale + '×' : '—';
+}
+
+function updateCountBadge() {
+  document.getElementById('countBadge').textContent = files.length + ' image' + (files.length !== 1 ? 's' : '');
+}
+
+/* ─── Helpers ─── */
+function formatBytes(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(2) + ' MB';
+}
+
+/* ─── FAQ ─── */
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ─── Hamburger ─── */
+const hamburger = document.querySelector('.hamburger');
+const navMenu = document.querySelector('.nav-menu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  navMenu.classList.toggle('open');
+});
+navMenu.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    navMenu.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
