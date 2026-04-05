@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMG Watermark — Free Online Image Watermark Tool</title>
+<script type="module" src="./auth-nav.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root {
+    --blue:#2563eb; --blue-bright:#3b82f6; --blue-dark:#1d4ed8;
+    --blue-glow:rgba(37,99,235,0.35); --bg:#f8faff; --surface:#ffffff;
+    --border:#e5e9f5; --text:#1a1f2e; --muted:#7a8aaa;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse 70% 50% at 20% 20%,rgba(37,99,235,0.15) 0%,transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 80%,rgba(29,78,216,0.10) 0%,transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%,rgba(59,130,246,0.05) 0%,transparent 70%);
+    pointer-events:none;
+  }
+
+  /* NAV */
+  nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 24px; background:#fff; border-bottom:1px solid #e5e9f5;
+  box-shadow:0 1px 12px rgba(59,126,248,0.07); position:relative; z-index:100;
+}
+.nav-logo { display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; color:#1a1f2e; text-decoration:none; }
+.nav-logo-icon { width:32px; height:32px; background:#3b7ef8; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+.nav-links { display:flex; gap:22px; list-style:none; align-items:center; }
+.nav-links a { text-decoration:none; color:#6b7280; font-size:14px; font-weight:500; transition:color .2s; }
+.nav-links a:hover { color:#3b7ef8; }
+.nav-right { display:flex; align-items:center; gap:14px; }
+#nav-auth-area { display:flex; align-items:center; }
+.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:4px; }
+.hamburger span { width:22px; height:2px; background:#1a1f2e; border-radius:2px; transition:transform .3s,opacity .3s; display:block; }
+.hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+.hamburger.active span:nth-child(2) { opacity:0; }
+.hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+.nav-mobile-menu { display:none; flex-direction:column; position:absolute; top:100%; left:0; right:0; background:#fff; border-bottom:1px solid #e5e9f5; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:200; padding:8px 0 14px; }
+.nav-mobile-menu.open { display:flex; }
+.nav-mobile-menu .nav-links-mobile { list-style:none; display:flex; flex-direction:column; }
+.nav-mobile-menu .nav-links-mobile a { display:block; padding:11px 24px; font-size:14px; font-weight:500; color:#6b7280; text-decoration:none; }
+.nav-mobile-menu .nav-links-mobile a:hover { color:#3b7ef8; background:#f8faff; }
+.nav-mobile-menu #nav-auth-mobile { display:flex; gap:10px; padding:10px 24px 0; border-top:1px solid #e5e9f5; margin-top:4px; }
+@media(max-width:700px) { .nav-links { display:none; } #nav-auth-area { display:none; } .hamburger { display:flex; } }
+
+  /* HERO */
+  .hero-text{text-align:center;padding:52px 24px 36px;position:relative;z-index:1;}
+  .hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.2);color:#93c5fd;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:.5px;text-transform:uppercase;}
+  .hero-text h1{font-family:'Sora',sans-serif;font-size:clamp(28px,5.5vw,52px);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#1a1f2e 0%,#2563eb 50%,#3b82f6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero-text p{color:var(--muted);font-size:15px;max-width:480px;margin:0 auto;line-height:1.75;}
+  .format-flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:24px;}
+  .fmt-badge{background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:6px 14px;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;box-shadow:0 2px 8px rgba(37,99,235,0.06);}
+  .fmt-arrow{color:var(--blue-bright);font-size:18px;font-weight:700;}
+
+  /* TOOL WRAPPER */
+  .tool-wrapper{max-width:1080px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1;}
+
+  /* ERROR BANNER */
+  #errorBanner{display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:13px 16px;margin-bottom:16px;color:#fca5a5;font-size:13.5px;align-items:flex-start;gap:10px;}
+  #errorBanner.show{display:flex;}
+  #errorBanner svg{width:16px;height:16px;stroke:#f87171;fill:none;stroke-width:2;flex-shrink:0;margin-top:1px;}
+
+  /* DROPZONE */
+  #dropzone{border:2px dashed var(--border);border-radius:22px;background:var(--surface);padding:56px 30px;text-align:center;cursor:pointer;transition:border-color .25s,background .25s,transform .2s;position:relative;overflow:hidden;}
+  #dropzone::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 100%,rgba(37,99,235,0.06) 0%,transparent 70%);pointer-events:none;}
+  #dropzone:hover,#dropzone.drag-over{border-color:var(--blue-bright);transform:translateY(-2px);}
+  #dropzone.drag-over{background:rgba(37,99,235,0.03);}
+  .drop-icon{width:76px;height:76px;margin:0 auto 20px;background:linear-gradient(135deg,rgba(37,99,235,0.14),rgba(59,130,246,0.07));border:1.5px solid rgba(37,99,235,0.18);border-radius:22px;display:flex;align-items:center;justify-content:center;}
+  .drop-icon svg{width:34px;height:34px;stroke:var(--blue-bright);fill:none;stroke-width:1.5;}
+  #dropzone h3{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:10px;}
+  #dropzone p{color:var(--muted);font-size:13.5px;margin-bottom:24px;line-height:1.6;}
+  .upload-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--blue),var(--blue-bright));color:white;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;box-shadow:0 4px 20px var(--blue-glow);font-family:'DM Sans',sans-serif;}
+  .upload-btn:hover{opacity:.9;transform:translateY(-1px);}
+  .upload-btn svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2;}
+  .drop-note{font-size:12px;color:var(--muted);margin-top:14px;}
+  #fileInput{display:none;}
+
+  /* FEATURES STRIP */
+  .features-strip{display:flex;gap:0;justify-content:center;flex-wrap:wrap;max-width:760px;margin:32px auto 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;}
+  .feat-item{flex:1;min-width:130px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 16px;border-right:1px solid var(--border);font-size:12.5px;font-weight:500;color:var(--muted);}
+  .feat-item:last-child{border-right:none;}
+  .feat-item svg{width:14px;height:14px;stroke:var(--blue-bright);fill:none;stroke-width:2;flex-shrink:0;}
+  @media(max-width:580px){.features-strip{flex-direction:column;border-radius:12px;}.feat-item{border-right:none;border-bottom:1px solid var(--border);}.feat-item:last-child{border-bottom:none;}}
+
+  /* TOOL AREA */
+  #toolArea{display:none;}
+
+  /* TWO-COL LAYOUT */
+  .tool-cols{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
+  @media(max-width:860px){.tool-cols{grid-template-columns:1fr;}}
+
+  /* SETTINGS PANEL */
+  .settings-panel{background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:0;}
+  .panel-section{padding:18px 0;border-bottom:1px solid var(--border);}
+  .panel-section:first-child{padding-top:0;}
+  .panel-section:last-child{border-bottom:none;padding-bottom:0;}
+  .panel-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+  .panel-title svg{width:14px;height:14px;stroke:var(--blue);fill:none;stroke-width:2;}
+
+  /* Tab switch */
+  .wm-tabs{display:flex;background:#f1f5fb;border-radius:10px;padding:3px;gap:3px;margin-bottom:16px;}
+  .wm-tab{flex:1;padding:7px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--muted);background:transparent;cursor:pointer;transition:all .2s;}
+  .wm-tab.active{background:#fff;color:var(--blue);box-shadow:0 1px 6px rgba(37,99,235,0.12);}
+
+  .setting-group{margin-bottom:14px;}
+  .setting-group:last-child{margin-bottom:0;}
+  .setting-label{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px;}
+  .setting-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);background:#fff;transition:border-color .2s;}
+  .setting-input:focus{outline:none;border-color:var(--blue-bright);}
+  .setting-select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);background:#fff;cursor:pointer;transition:border-color .2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+  .setting-select:focus{outline:none;border-color:var(--blue-bright);}
+  .slider-row{display:flex;align-items:center;gap:10px;}
+  .slider-row input[type=range]{flex:1;height:4px;border-radius:4px;accent-color:var(--blue-bright);}
+  .slider-val{font-family:'Sora',sans-serif;font-size:12px;font-weight:800;color:var(--blue);background:rgba(37,99,235,0.08);padding:2px 8px;border-radius:6px;min-width:40px;text-align:center;}
+  .color-row{display:flex;align-items:center;gap:10px;}
+  .color-row input[type=color]{width:36px;height:36px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;}
+  .color-swatches{display:flex;gap:6px;flex-wrap:wrap;}
+  .swatch{width:24px;height:24px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;}
+  .swatch:hover,.swatch.active{transform:scale(1.15);border-color:var(--blue);}
+
+  /* Position grid */
+  .pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .pos-btn{aspect-ratio:1;border:1.5px solid var(--border);border-radius:9px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:10px;color:var(--muted);}
+  .pos-btn:hover{border-color:var(--blue-bright);color:var(--blue);}
+  .pos-btn.active{border-color:var(--blue);background:rgba(37,99,235,0.08);color:var(--blue);}
+  .pos-btn svg{width:14px;height:14px;stroke:currentColor;fill:currentColor;stroke-width:0;}
+
+  /* Watermark logo upload */
+  .logo-drop{border:2px dashed var(--border);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbff;}
+  .logo-drop:hover{border-color:var(--blue-bright);background:rgba(37,99,235,0.02);}
+  .logo-drop p{font-size:12px;color:var(--muted);margin-top:6px;}
+  .logo-preview{display:none;width:60px;height:60px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin:0 auto;}
+  #logoInput{display:none;}
+
+  /* Apply btn */
+  .btn-apply{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-bright));color:white;border:none;padding:13px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;box-shadow:0 4px 18px var(--blue-glow);font-family:'DM Sans',sans-serif;margin-top:4px;}
+  .btn-apply:hover{opacity:.9;transform:translateY(-1px);}
+  .btn-apply svg{width:15px;height:15px;stroke:white;fill:none;stroke-width:2.2;}
+
+  /* RIGHT SIDE */
+  .right-panel{display:flex;flex-direction:column;gap:16px;}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media(max-width:500px){.stats-row{grid-template-columns:1fr 1fr;}}
+  .stat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
+  .stat-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px;}
+  .stat-value{font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:var(--text);}
+  .stat-value.green{color:var(--success);}
+  .stat-value.blue{color:var(--blue);}
+
+  /* TOOLBAR */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .toolbar-left{display:flex;align-items:center;gap:10px;}
+  .toolbar h3{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--text);}
+  .count-badge{background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.2);color:var(--blue);font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;font-family:'Sora',sans-serif;}
+  .toolbar-right{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn-ghost{display:flex;align-items:center;gap:7px;background:#fff;border:1.5px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+  .btn-ghost:hover{border-color:var(--blue-bright);color:var(--blue);}
+  .btn-ghost svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+  .btn-zip{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:8px 18px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;font-family:'DM Sans',sans-serif;box-shadow:0 3px 12px rgba(16,185,129,0.3);}
+  .btn-zip:hover{opacity:.9;transform:translateY(-1px);}
+  .btn-zip:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  .btn-zip svg{width:13px;height:13px;stroke:white;fill:none;stroke-width:2;}
+
+  /* FILE LIST */
+  .file-list{display:flex;flex-direction:column;gap:10px;}
+  .file-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;display:grid;grid-template-columns:64px 1fr auto;gap:0;overflow:hidden;transition:box-shadow .2s,border-color .2s;}
+  .file-card:hover{box-shadow:0 4px 24px rgba(37,99,235,0.08);}
+  .file-card.processing{border-color:rgba(37,99,235,0.3);}
+  .file-card.done{border-color:rgba(16,185,129,0.35);}
+  .file-card.error{border-color:rgba(239,68,68,0.35);}
+  .file-thumb{width:64px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;border-right:1.5px solid var(--border);flex-shrink:0;overflow:hidden;}
+  .file-thumb img{width:64px;height:64px;object-fit:cover;}
+  .file-info{padding:13px 16px;display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;}
+  .file-name{font-size:13.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .file-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .file-size{font-size:11.5px;color:var(--muted);}
+  .wm-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--blue);background:rgba(37,99,235,0.09);padding:2px 8px;border-radius:5px;}
+  .file-status{font-size:11px;font-weight:600;}
+  .status-waiting{color:var(--muted);}
+  .status-processing{color:var(--blue);}
+  .status-done{color:var(--success);}
+  .status-error{color:var(--danger);}
+  .file-progress{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px;display:none;}
+  .file-progress-bar{height:100%;border-radius:2px;width:0%;transition:width .4s;}
+  .file-card.processing .file-progress{display:block;}
+  .file-card.processing .file-progress-bar{background:var(--blue-bright);animation:prog .5s ease forwards .05s;}
+  .file-card.done .file-progress{display:block;}
+  .file-card.done .file-progress-bar{background:var(--success);width:100%;}
+  @keyframes prog{from{width:0%}to{width:88%;}}
+  .file-actions{padding:12px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .btn-dl{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--blue),var(--blue-bright));color:white;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;font-family:'DM Sans',sans-serif;box-shadow:0 2px 10px var(--blue-glow);}
+  .btn-dl:hover{opacity:.9;transform:translateY(-1px);}
+  .btn-dl:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+  .btn-dl svg{width:12px;height:12px;stroke:white;fill:none;stroke-width:2.5;}
+  .btn-remove{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
+  .btn-remove:hover{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.05);}
+  .btn-remove svg{width:13px;height:13px;stroke:#f87171;fill:none;stroke-width:2;}
+
+  /* PREVIEW MODAL */
+  .preview-wrap{position:relative;background:#f1f5fb;border:1px solid var(--border);border-radius:14px;overflow:hidden;min-height:180px;display:flex;align-items:center;justify-content:center;}
+  #previewCanvas{max-width:100%;max-height:340px;border-radius:10px;display:block;}
+  .preview-placeholder{color:var(--muted);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:32px;}
+  .preview-placeholder svg{width:36px;height:36px;stroke:var(--border);fill:none;stroke-width:1.5;}
+
+  /* SECTIONS */
+  .section-divider{border:none;border-top:1px solid var(--border);margin:0 24px;}
+  .section-wrapper{max-width:1080px;margin:0 auto;padding:70px 24px;position:relative;z-index:1;}
+  .section-label{display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.2);color:#93c5fd;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;margin-bottom:14px;letter-spacing:.6px;text-transform:uppercase;}
+  .section-title{font-family:'Sora',sans-serif;font-size:clamp(22px,3.5vw,34px);font-weight:800;color:var(--text);margin-bottom:10px;line-height:1.2;}
+  .section-sub{color:var(--muted);font-size:14.5px;line-height:1.75;max-width:520px;margin-bottom:44px;}
+  .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  @media(max-width:860px){.steps-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:500px){.steps-grid{grid-template-columns:1fr;}}
+  .step-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:26px 22px;transition:box-shadow .25s,transform .25s;}
+  .step-card:hover{box-shadow:0 8px 36px rgba(37,99,235,0.10);transform:translateY(-3px);}
+  .step-number{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--blue),var(--blue-bright));color:#fff;font-family:'Sora',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 4px 16px var(--blue-glow);}
+  .step-card h4{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;}
+  .step-card p{color:var(--muted);font-size:12.5px;line-height:1.7;}
+  .use-cases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:700px){.use-cases-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:420px){.use-cases-grid{grid-template-columns:1fr;}}
+  .use-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px 20px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .25s,transform .25s;}
+  .use-card:hover{box-shadow:0 6px 28px rgba(37,99,235,0.09);transform:translateY(-3px);}
+  .use-icon{width:46px;height:46px;border-radius:13px;background:rgba(37,99,235,0.09);border:1px solid rgba(37,99,235,0.15);display:flex;align-items:center;justify-content:center;}
+  .use-icon svg{width:22px;height:22px;stroke:var(--blue-bright);fill:none;stroke-width:1.8;}
+  .use-card h4{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+  .use-card p{color:var(--muted);font-size:12.5px;line-height:1.65;}
+  .faq-list{display:flex;flex-direction:column;gap:12px;max-width:720px;margin:0 auto;}
+  .faq-item{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:box-shadow .2s;}
+  .faq-item.open{box-shadow:0 4px 24px rgba(37,99,235,0.08);border-color:rgba(37,99,235,0.25);}
+  .faq-question{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text);gap:14px;user-select:none;}
+  .faq-question:hover{color:var(--blue);}
+  .faq-chevron{width:20px;height:20px;flex-shrink:0;stroke:var(--muted);fill:none;stroke-width:2;transition:transform .3s;}
+  .faq-item.open .faq-chevron{transform:rotate(180deg);stroke:var(--blue);}
+  .faq-answer{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;padding:0 22px;color:var(--muted);font-size:13.5px;line-height:1.75;}
+  .faq-item.open .faq-answer{max-height:220px;padding:0 22px 18px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+
+   /* ─── ABOUT SECTION ─── */
+.about-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+@media(max-width:768px){
+  .about-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.about-text .about-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.about-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.about-features div {
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.about-image img {
+  width: 100%;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(37,99,235,0.15);
+  object-fit: cover;
+}
+
+
+ /* FOOTER */
+  .site-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  .footer-top {
+    max-width: 1020px; margin: 0 auto;
+    padding: 52px 24px 36px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 780px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-brand .nav-logo {
+    display: inline-flex; margin-bottom: 14px;
+  }
+  .footer-brand p {
+    font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 240px; margin-bottom: 20px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .footer-social-btn:hover {
+    background: rgba(37,99,235,0.1); border-color: var(--blue-bright); color: var(--blue);
+  }
+  .footer-social-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .footer-col h5 {
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text); letter-spacing: .6px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--blue); }
+  .footer-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .footer-bottom {
+    max-width: 1020px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .footer-copy {
+    font-size: 12.5px; color: var(--muted);
+  }
+  .footer-copy a { color: var(--blue); text-decoration: none; }
+  .footer-copy a:hover { text-decoration: underline; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.18);
+    color: var(--blue); font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: .4px;
+  }
+  .footer-badge svg { width: 10px; height: 10px; fill: var(--blue); stroke: none; }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="./index.html">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Image Tools
+  </a>
+  <ul class="nav-links">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Terms of Use</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+  </ul>
+  <div class="nav-right">
+    <div id="nav-auth-area">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+        <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile-menu" id="navMobileMenu">
+    <ul class="nav-links-mobile">
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./dashboard.html">Dashboard</a></li>
+      <li><a href="./contact.html">Contact</a></li>
+      <li><a href="./terms.html">Terms of Use</a></li>
+      <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    </ul>
+    <div id="nav-auth-mobile">
+      <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+      <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<div class="hero-text">
+  <div class="hero-pill">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#93c5fd" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Text · Logo · Batch — Watermark Free
+  </div>
+  <h1>Add Watermark to<br>Images Instantly</h1>
+  <p>Upload your images, type your watermark text or upload a logo, choose position & opacity — done in seconds. 100% in-browser, no server, completely private.</p>
+  <div class="format-flow">
+    <span class="fmt-badge">Text Watermark</span>
+    <span class="fmt-arrow">·</span>
+    <span class="fmt-badge">Logo Watermark</span>
+    <span class="fmt-arrow">·</span>
+    <span class="fmt-badge">Batch</span>
+    <span class="fmt-arrow">→</span>
+    <span class="fmt-badge" style="background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,0.3);color:var(--blue);">Protected ✓</span>
+  </div>
+</div>
+
+<!-- TOOL -->
+<div class="tool-wrapper">
+
+  <div id="errorBanner">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="errorText">Something went wrong.</span>
+  </div>
+
+  <!-- DROPZONE -->
+  <div id="dropzone">
+    <div class="drop-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <h3>Drop Images to Watermark</h3>
+    <p>Supports JPG, PNG, WEBP — drag multiple files at once</p>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Choose Images
+    </button>
+    <p class="drop-note">✓ Processed entirely in your browser — no uploads, 100% private</p>
+    <input type="file" id="fileInput" accept="image/*" multiple />
+  </div>
+
+  <!-- FEATURES STRIP -->
+  <div class="features-strip" id="featuresStrip">
+    <div class="feat-item"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Text Watermark</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Logo Watermark</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>100% Private</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ZIP Download</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>No Watermark on Tool · Free</div>
+  </div>
+
+  <!-- TOOL AREA -->
+  <div id="toolArea">
+
+    <!-- TWO-COL -->
+    <div class="tool-cols">
+
+      <!-- LEFT: SETTINGS PANEL -->
+      <div class="settings-panel">
+
+        <!-- Watermark Type -->
+        <div class="panel-section">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Watermark Type
+          </div>
+          <div class="wm-tabs">
+            <button class="wm-tab active" id="tabText" onclick="switchTab('text')">✏️ Text</button>
+            <button class="wm-tab" id="tabLogo" onclick="switchTab('logo')">🖼 Logo</button>
+          </div>
+
+          <!-- TEXT WM -->
+          <div id="textSettings">
+            <div class="setting-group">
+              <label class="setting-label">Watermark Text</label>
+              <input type="text" class="setting-input" id="wmText" placeholder="© YourBrand 2025" value="© Your Watermark" oninput="livePreview()">
+            </div>
+            <div class="setting-group">
+              <label class="setting-label">Font</label>
+              <select class="setting-select" id="wmFont" onchange="livePreview()">
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="'Courier New'">Courier New</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Impact">Impact</option>
+                <option value="'Times New Roman'">Times New Roman</option>
+                <option value="Trebuchet MS">Trebuchet MS</option>
+              </select>
+            </div>
+            <div class="setting-group">
+              <label class="setting-label">Font Size</label>
+              <div class="slider-row">
+                <input type="range" id="wmSize" min="10" max="120" value="36" oninput="updateSlider('wmSize','wmSizeVal','px');livePreview()">
+                <span class="slider-val" id="wmSizeVal">36px</span>
+              </div>
+            </div>
+            <div class="setting-group">
+              <label class="setting-label">Color</label>
+              <div class="color-row">
+                <input type="color" id="wmColor" value="#ffffff" oninput="livePreview()">
+                <div class="color-swatches">
+                  <div class="swatch active" style="background:#ffffff;border:1px solid #ddd;" onclick="setColor('#ffffff',this)"></div>
+                  <div class="swatch" style="background:#000000;" onclick="setColor('#000000',this)"></div>
+                  <div class="swatch" style="background:#2563eb;" onclick="setColor('#2563eb',this)"></div>
+                  <div class="swatch" style="background:#ef4444;" onclick="setColor('#ef4444',this)"></div>
+                  <div class="swatch" style="background:#f59e0b;" onclick="setColor('#f59e0b',this)"></div>
+                  <div class="swatch" style="background:#10b981;" onclick="setColor('#10b981',this)"></div>
+                  <div class="swatch" style="background:#8b5cf6;" onclick="setColor('#8b5cf6',this)"></div>
+                </div>
+              </div>
+            </div>
+            <div class="setting-group">
+              <label class="setting-label">Rotation</label>
+              <div class="slider-row">
+                <input type="range" id="wmRotate" min="-90" max="90" value="-30" oninput="updateSlider('wmRotate','wmRotateVal','°');livePreview()">
+                <span class="slider-val" id="wmRotateVal">-30°</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOGO WM -->
+          <div id="logoSettings" style="display:none;">
+            <div class="logo-drop" id="logoDrop" onclick="document.getElementById('logoInput').click()">
+              <img id="logoPreview" class="logo-preview" src="" alt="logo preview">
+              <svg id="logoPlaceholderIcon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--border)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <p id="logoDropText">Click to upload logo / PNG</p>
+            </div>
+            <input type="file" id="logoInput" accept="image/*">
+            <div class="setting-group" style="margin-top:14px;">
+              <label class="setting-label">Logo Size (%)</label>
+              <div class="slider-row">
+                <input type="range" id="logoSize" min="5" max="60" value="20" oninput="updateSlider('logoSize','logoSizeVal','%');livePreview()">
+                <span class="slider-val" id="logoSizeVal">20%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opacity -->
+        <div class="panel-section">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20" opacity=".4"/></svg>
+            Opacity
+          </div>
+          <div class="slider-row">
+            <input type="range" id="wmOpacity" min="5" max="100" value="50" oninput="updateSlider('wmOpacity','wmOpacityVal','%');livePreview()">
+            <span class="slider-val" id="wmOpacityVal">50%</span>
+          </div>
+        </div>
+
+        <!-- Position -->
+        <div class="panel-section">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 12h4M17 12h4M12 3v4M12 17v4"/></svg>
+            Position
+          </div>
+          <div class="pos-grid" id="posGrid">
+            <button class="pos-btn" data-pos="top-left"    onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="2" cy="2" r="2"/></svg></button>
+            <button class="pos-btn" data-pos="top-center"  onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="5" cy="2" r="2"/></svg></button>
+            <button class="pos-btn" data-pos="top-right"   onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="8" cy="2" r="2"/></svg></button>
+            <button class="pos-btn" data-pos="mid-left"    onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="2" cy="5" r="2"/></svg></button>
+            <button class="pos-btn active" data-pos="center" onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="2"/></svg></button>
+            <button class="pos-btn" data-pos="mid-right"   onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="8" cy="5" r="2"/></svg></button>
+            <button class="pos-btn" data-pos="bot-left"    onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="2" cy="8" r="2"/></svg></button>
+            <button class="pos-btn" data-pos="bot-center"  onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="5" cy="8" r="2"/></svg></button>
+            <button class="pos-btn" data-pos="bot-right"   onclick="setPos(this)"><svg viewBox="0 0 10 10"><circle cx="8" cy="8" r="2"/></svg></button>
+          </div>
+        </div>
+
+        <!-- Tile option -->
+        <div class="panel-section">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Tiling
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;">
+            <input type="checkbox" id="wmTile" style="accent-color:var(--blue);width:15px;height:15px;" onchange="livePreview()">
+            Repeat watermark across entire image
+          </label>
+        </div>
+
+        <!-- Apply -->
+        <div class="panel-section">
+          <button class="btn-apply" onclick="applyAll()">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Apply to All Images
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+
+        <!-- LIVE PREVIEW -->
+        <div class="settings-panel" style="padding:18px;">
+          <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:7px;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Live Preview
+          </div>
+          <div class="preview-wrap">
+            <canvas id="previewCanvas" style="display:none;"></canvas>
+            <div class="preview-placeholder" id="previewPlaceholder">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Preview appears here after uploading</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Total Files</div><div class="stat-value blue" id="statTotal">0</div></div>
+          <div class="stat-card"><div class="stat-label">Watermarked</div><div class="stat-value green" id="statDone">0</div></div>
+          <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" id="statPending">0</div></div>
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <h3>Images</h3>
+            <span class="count-badge" id="countBadge">0 images</span>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn-ghost" onclick="document.getElementById('fileInputMore').click()">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add More
+            </button>
+            <input type="file" id="fileInputMore" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+            <button class="btn-ghost" onclick="clearAll()">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+              Clear All
+            </button>
+            <button class="btn-zip" id="zipBtn" onclick="downloadZip()" disabled>
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download ZIP
+            </button>
+          </div>
+        </div>
+
+        <!-- FILE LIST -->
+        <div class="file-list" id="fileList"></div>
+
+      </div>
+    </div>
+  </div><!-- /toolArea -->
+</div><!-- /tool-wrapper -->
+
+<hr class="section-divider">
+
+
+<!-- ABOUT SECTION -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div class="about-container">
+
+    <!-- LEFT CONTENT -->
+    <div class="about-text">
+      <div class="section-label">
+        About Tool
+      </div>
+
+      <h2 class="section-title">
+        Protect Your Images with Watermark
+      </h2>
+
+      <p class="section-sub">
+        Our Image Watermark Tool allows you to easily add text or logo watermarks to your images in seconds. Whether you want to protect your photos, promote your brand, or add copyright information, this tool gives you full control — directly in your browser with no uploads required.
+      </p>
+
+      <p class="about-desc">
+        This tool is designed for developers, designers, and everyday users who need a simple, fast, and secure way to convert images. 
+        With batch conversion, quality control, and resizing options, you get full control over your images without using heavy software like Photoshop.
+      </p>
+
+      <div class="about-features">
+        <div>✔ 100% Browser-Based Processing</div>
+        <div>✔ No Watermark, Completely Free</div>
+        <div>✔ Batch Image Conversion</div>
+        <div>✔ Secure & Private</div>
+      </div>
+    </div>
+
+    <!-- RIGHT IMAGE -->
+    <div class="about-image">
+      <img src="./img/watermark.webp" alt="Image Converter Tool">
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- HOW IT WORKS -->
+<div class="section-wrapper">
+  <div class="section-label"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>How It Works</div>
+  <h2 class="section-title">Add Watermark in 4 Steps</h2>
+  <p class="section-sub">No signup, no app install. Everything runs in your browser.</p>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-number">1</div><h4>Upload Images</h4><p>Drag & drop or click to select one or multiple photos. JPG, PNG, WEBP supported.</p></div>
+    <div class="step-card"><div class="step-number">2</div><h4>Set Watermark</h4><p>Type your text or upload a logo. Adjust font, color, size, rotation, and opacity.</p></div>
+    <div class="step-card"><div class="step-number">3</div><h4>Choose Position</h4><p>Pick one of 9 positions on the image, or enable tiling to repeat across the whole image.</p></div>
+    <div class="step-card"><div class="step-number">4</div><h4>Download</h4><p>Save watermarked images individually or download all at once as a ZIP file.</p></div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- USE CASES -->
+<div class="section-wrapper">
+  <div class="section-label"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Use Cases</div>
+  <h2 class="section-title">Why Watermark Your Images?</h2>
+  <p class="section-sub">Protect your creative work and establish your brand across every platform.</p>
+  <div class="use-cases-grid">
+    <div class="use-card"><div class="use-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><h4>Photographers</h4><p>Protect your photos from unauthorized use by adding a subtle copyright watermark before sharing online.</p></div>
+    <div class="use-card"><div class="use-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div><h4>Social Media Creators</h4><p>Brand every image with your logo or handle so followers always know where the content originated.</p></div>
+    <div class="use-card"><div class="use-icon"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></div><h4>E-commerce</h4><p>Add your store name or logo to product photos before publishing to prevent competitors from stealing images.</p></div>
+    <div class="use-card"><div class="use-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div><h4>Digital Products</h4><p>Watermark preview images of your digital downloads, templates, or courses to prevent piracy.</p></div>
+    <div class="use-card"><div class="use-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><h4>Business & Marketing</h4><p>Consistently brand all marketing images with your company logo or slogan for cohesive identity.</p></div>
+    <div class="use-card"><div class="use-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Copyright Protection</h4><p>Clearly mark ownership on any image before distribution — legally establishes you as the creator.</p></div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- FAQ -->
+<div class="section-wrapper">
+  <div style="text-align:center;margin-bottom:40px;">
+    <div class="section-label" style="display:inline-flex;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>FAQ</div>
+    <h2 class="section-title">Frequently Asked Questions</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">Are my images uploaded to a server?<svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-answer">Never. All watermarking happens entirely inside your browser using the HTML5 Canvas API. Your images never leave your device, so they remain completely private and secure.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">Can I use a transparent PNG as a logo watermark?<svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-answer">Yes — uploading a PNG with a transparent background as your logo is the recommended approach. The transparent areas will be preserved, so only your actual logo graphic appears on the image.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">What does the Tiling option do?<svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-answer">Tiling repeats your watermark in a grid pattern across the entire image instead of placing it in a single position. This makes it much harder to crop out the watermark, offering stronger protection.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">Can I watermark multiple images at once?<svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-answer">Yes — upload as many images as you like and click "Apply to All Images." The same watermark settings will be applied to every file. Download them all with the ZIP button.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">What image formats are supported?<svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-answer">You can upload JPG, PNG, WEBP, BMP, and GIF images. The watermarked output is saved as a high-quality JPG by default. PNG inputs with transparency are preserved when exported.</div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- FOOTER -->
+<hr class="section-divider">
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        AI Image Tools
+      </a>
+      <p>Free AI-powered profile picture maker. Remove background, circle crop, and download for any platform in seconds.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Tools</h5>
+      <ul>
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="#">BG Remover</a></li>
+        <li><a href="#">Image Resizer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="./contact.html">Contact Us</a></li>
+        <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="./terms.html">Terms of Use</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="./contact.html">Help Center</a></li>
+        <li><a href="./contact.html">Report a Bug</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">&#169; 2025 <a href="#">AI Image Tools</a>. All rights reserved. Powered by <a href="https://www.aiImageTools.com" target="_blank">Image Tools</a>.</p>
+    <span class="footer-badge">
+      <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="6"/></svg>
+      Free &amp; No Watermark
+    </span>
+  </div>
+</footer>
+
+<script>
+/* ──────────── STATE ──────────── */
+let files = [];
+let idCounter = 0;
+let activeTab = 'text';
+let activePos = 'center';
+let logoImg = null;
+let previewSourceEntry = null;
+
+/* ──────────── DOM REFS ──────────── */
+const dropzone     = document.getElementById('dropzone');
+const toolArea     = document.getElementById('toolArea');
+const featStrip    = document.getElementById('featuresStrip');
+const fileList     = document.getElementById('fileList');
+const previewCanvas= document.getElementById('previewCanvas');
+const previewPH    = document.getElementById('previewPlaceholder');
+
+/* ──────────── DRAG & DROP ──────────── */
+dropzone.addEventListener('dragover', e=>{e.preventDefault();dropzone.classList.add('drag-over');});
+dropzone.addEventListener('dragleave', ()=>dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e=>{e.preventDefault();dropzone.classList.remove('drag-over');handleFiles(e.dataTransfer.files);});
+dropzone.addEventListener('click', e=>{if(e.target.closest('button'))return;document.getElementById('fileInput').click();});
+document.getElementById('fileInput').addEventListener('change', e=>{handleFiles(e.target.files);e.target.value='';});
+
+/* ──────────── LOGO INPUT ──────────── */
+document.getElementById('logoInput').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = ()=>{
+    logoImg = img;
+    const prev = document.getElementById('logoPreview');
+    prev.src = url;
+    prev.style.display = 'block';
+    document.getElementById('logoPlaceholderIcon').style.display = 'none';
+    document.getElementById('logoDropText').textContent = file.name;
+    livePreview();
+  };
+  img.src = url;
+  e.target.value='';
+});
+
+/* ──────────── HANDLE FILES ──────────── */
+function handleFiles(input){
+  for(const file of input){
+    if(!file.type.startsWith('image/')) continue;
+    const id = ++idCounter;
+    const entry = {id, file, name:file.name, origSize:file.size, blob:null, status:'waiting'};
+    files.push(entry);
+    renderCard(entry);
+    if(!previewSourceEntry){ previewSourceEntry = entry; livePreview(); }
+  }
+  if(files.length>0){
+    dropzone.style.display='none';
+    featStrip.style.display='none';
+    toolArea.style.display='block';
+  }
+  updateStats(); updateCountBadge();
+}
+
+/* ──────────── RENDER CARD ──────────── */
+function renderCard(entry){
+  const card = document.createElement('div');
+  card.className='file-card'; card.id='card-'+entry.id;
+  const thumbUrl = URL.createObjectURL(entry.file);
+  card.innerHTML=`
+    <div class="file-thumb"><img src="${thumbUrl}" alt="${entry.name}" onload="URL.revokeObjectURL(this.src)"/></div>
+    <div class="file-info">
+      <div class="file-name">${entry.name}</div>
+      <div class="file-meta">
+        <span class="file-size">${formatBytes(entry.origSize)}</span>
+        <span class="wm-badge" id="wmbadge-${entry.id}" style="display:none">✓ Watermarked</span>
+        <span class="file-status status-waiting" id="status-${entry.id}">Waiting…</span>
+      </div>
+      <div class="file-progress"><div class="file-progress-bar" id="prog-${entry.id}"></div></div>
+    </div>
+    <div class="file-actions">
+      <button class="btn-dl" id="dl-${entry.id}" disabled onclick="downloadSingle(${entry.id})">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Save
+      </button>
+      <button class="btn-remove" onclick="removeFile(${entry.id})">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  fileList.appendChild(card);
+}
+
+/* ──────────── WATERMARK ENGINE ──────────── */
+function applyWatermarkToCanvas(sourceImg, canvas){
+  const W = sourceImg.naturalWidth, H = sourceImg.naturalHeight;
+  canvas.width=W; canvas.height=H;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(sourceImg,0,0,W,H);
+
+  const opacity = parseInt(document.getElementById('wmOpacity').value)/100;
+  const pos = activePos;
+  const tile = document.getElementById('wmTile').checked;
+  ctx.globalAlpha = opacity;
+
+  if(activeTab === 'text'){
+    const text = document.getElementById('wmText').value || '© Watermark';
+    const font = document.getElementById('wmFont').value;
+    const size = parseInt(document.getElementById('wmSize').value);
+    const color = document.getElementById('wmColor').value;
+    const rotation = parseInt(document.getElementById('wmRotate').value) * Math.PI/180;
+
+    ctx.font = `bold ${size}px ${font}`;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'middle';
+
+    const tm = ctx.measureText(text);
+    const tw = tm.width, th = size;
+
+    if(tile){
+      const gapX = tw*2 + 40, gapY = th*3;
+      for(let y=-H; y<H*2; y+=gapY){
+        for(let x=-W; x<W*2; x+=gapX){
+          ctx.save();
+          ctx.translate(x + tw/2, y + th/2);
+          ctx.rotate(rotation);
+          ctx.fillText(text,-tw/2,0);
+          ctx.restore();
+        }
+      }
+    } else {
+      const {px,py} = getPos(pos,W,H,tw,th);
+      ctx.save();
+      ctx.translate(px+tw/2, py+th/2);
+      ctx.rotate(rotation);
+      ctx.fillText(text,-tw/2,0);
+      ctx.restore();
+    }
+  } else {
+    if(!logoImg) return;
+    const logoSizePct = parseInt(document.getElementById('logoSize').value)/100;
+    const maxW = W * logoSizePct;
+    const scale = maxW / logoImg.naturalWidth;
+    const lw = logoImg.naturalWidth * scale;
+    const lh = logoImg.naturalHeight * scale;
+
+    if(tile){
+      const gapX = lw*2, gapY = lh*2;
+      for(let y=0; y<H+gapY; y+=gapY){
+        for(let x=0; x<W+gapX; x+=gapX){
+          ctx.drawImage(logoImg,x,y,lw,lh);
+        }
+      }
+    } else {
+      const {px,py} = getPos(pos,W,H,lw,lh);
+      ctx.drawImage(logoImg,px,py,lw,lh);
+    }
+  }
+  ctx.globalAlpha=1;
+}
+
+function getPos(pos,W,H,ew,eh){
+  const pad=20;
+  const map={
+    'top-left':    {px:pad,             py:pad},
+    'top-center':  {px:(W-ew)/2,        py:pad},
+    'top-right':   {px:W-ew-pad,        py:pad},
+    'mid-left':    {px:pad,             py:(H-eh)/2},
+    'center':      {px:(W-ew)/2,        py:(H-eh)/2},
+    'mid-right':   {px:W-ew-pad,        py:(H-eh)/2},
+    'bot-left':    {px:pad,             py:H-eh-pad},
+    'bot-center':  {px:(W-ew)/2,        py:H-eh-pad},
+    'bot-right':   {px:W-ew-pad,        py:H-eh-pad},
+  };
+  return map[pos] || map['center'];
+}
+
+/* ──────────── LIVE PREVIEW ──────────── */
+function livePreview(){
+  if(!previewSourceEntry) return;
+  const url = URL.createObjectURL(previewSourceEntry.file);
+  const img = new Image();
+  img.onload = ()=>{
+    applyWatermarkToCanvas(img, previewCanvas);
+    URL.revokeObjectURL(url);
+    previewCanvas.style.display='block';
+    previewPH.style.display='none';
+  };
+  img.src=url;
+}
+
+/* ──────────── APPLY SINGLE ──────────── */
+async function applyEntry(entry){
+  const card = document.getElementById('card-'+entry.id);
+  const statusEl = document.getElementById('status-'+entry.id);
+  card.classList.add('processing');
+  statusEl.className='file-status status-processing';
+  statusEl.textContent='Processing…';
+
+  try{
+    const blob = await new Promise((resolve,reject)=>{
+      const url = URL.createObjectURL(entry.file);
+      const img = new Image();
+      img.onload=()=>{
+        const canvas = document.createElement('canvas');
+        applyWatermarkToCanvas(img, canvas);
+        URL.revokeObjectURL(url);
+        const mime = entry.file.type==='image/png' ? 'image/png' : 'image/jpeg';
+        canvas.toBlob(b=>{ if(b) resolve(b); else reject(new Error('Failed')); }, mime, 0.92);
+      };
+      img.onerror=()=>reject(new Error('Could not load image'));
+      img.src=url;
+    });
+    entry.blob=blob; entry.status='done';
+    card.classList.remove('processing'); card.classList.add('done');
+    statusEl.className='file-status status-done';
+    statusEl.textContent='✓ Done · '+formatBytes(blob.size);
+    document.getElementById('wmbadge-'+entry.id).style.display='';
+    document.getElementById('dl-'+entry.id).disabled=false;
+  } catch(err){
+    entry.status='error';
+    card.classList.remove('processing'); card.classList.add('error');
+    statusEl.className='file-status status-error';
+    statusEl.textContent='✗ '+err.message;
+  }
+}
+
+/* ──────────── APPLY ALL ──────────── */
+async function applyAll(){
+  if(activeTab==='logo' && !logoImg){ showError('Please upload a logo image first.'); return; }
+  for(const entry of files){ await applyEntry(entry); }
+  updateStats();
+  if(files.filter(f=>f.status==='done').length>0) document.getElementById('zipBtn').disabled=false;
+}
+
+/* ──────────── DOWNLOAD ──────────── */
+function downloadSingle(id){
+  const entry = files.find(f=>f.id===id);
+  if(!entry||!entry.blob) return;
+  const ext = entry.blob.type==='image/png'?'png':'jpg';
+  const base = entry.name.replace(/\.[^.]+$/,'');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(entry.blob); a.download=base+'_watermarked.'+ext; a.click();
+}
+
+async function downloadZip(){
+  const done=files.filter(f=>f.status==='done'&&f.blob);
+  if(!done.length) return;
+  const zip=new JSZip();
+  done.forEach(entry=>{
+    const ext=entry.blob.type==='image/png'?'png':'jpg';
+    zip.file(entry.name.replace(/\.[^.]+$/,'')+'_watermarked.'+ext, entry.blob);
+  });
+  const content=await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(content); a.download='watermarked_images.zip'; a.click();
+}
+
+/* ──────────── CONTROLS ──────────── */
+function switchTab(tab){
+  activeTab=tab;
+  document.getElementById('tabText').classList.toggle('active', tab==='text');
+  document.getElementById('tabLogo').classList.toggle('active', tab==='logo');
+  document.getElementById('textSettings').style.display = tab==='text'?'':'none';
+  document.getElementById('logoSettings').style.display = tab==='logo'?'':'none';
+  livePreview();
+}
+
+function setPos(btn){
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activePos = btn.dataset.pos;
+  livePreview();
+}
+
+function setColor(hex, swatch){
+  document.getElementById('wmColor').value=hex;
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+  swatch.classList.add('active');
+  livePreview();
+}
+
+function updateSlider(sliderId, valId, unit){
+  document.getElementById(valId).textContent = document.getElementById(sliderId).value + unit;
+}
+
+/* ──────────── MISC ──────────── */
+function removeFile(id){
+  files=files.filter(f=>f.id!==id);
+  document.getElementById('card-'+id)?.remove();
+  if(previewSourceEntry && previewSourceEntry.id===id){
+    previewSourceEntry = files[0]||null;
+    if(previewSourceEntry) livePreview();
+    else{ previewCanvas.style.display='none'; previewPH.style.display=''; }
+  }
+  if(files.length===0){ toolArea.style.display='none'; dropzone.style.display=''; featStrip.style.display=''; }
+  updateStats(); updateCountBadge();
+}
+
+function clearAll(){
+  files=[]; fileList.innerHTML='';
+  toolArea.style.display='none'; dropzone.style.display=''; featStrip.style.display='';
+  previewCanvas.style.display='none'; previewPH.style.display='';
+  previewSourceEntry=null;
+  document.getElementById('zipBtn').disabled=true;
+  updateStats();
+}
+
+function updateStats(){
+  const total=files.length, done=files.filter(f=>f.status==='done').length;
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statDone').textContent=done;
+  document.getElementById('statPending').textContent=total-done;
+}
+function updateCountBadge(){
+  document.getElementById('countBadge').textContent=files.length+' image'+(files.length!==1?'s':'');
+}
+function showError(msg){
+  const b=document.getElementById('errorBanner');
+  document.getElementById('errorText').textContent=msg;
+  b.classList.add('show'); setTimeout(()=>b.classList.remove('show'),5000);
+}
+function formatBytes(b){
+  if(!b)return'—';
+  if(b<1024)return b+' B';
+  if(b<1048576)return(b/1024).toFixed(1)+' KB';
+  return(b/1048576).toFixed(2)+' MB';
+}
+function toggleFaq(el){
+  const item=el.parentElement, isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+
+/* hamburger */
+const hamburger = document.getElementById('hamburger');
+  const navMobileMenu = document.getElementById('navMobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navMobileMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!hamburger.contains(e.target) && !navMobileMenu.contains(e.target)) {
+      hamburger.classList.remove('active');
+      navMobileMenu.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account - AI Image Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #3b7ef8;
+    --blue-dark: #2563eb;
+    --blue-light: #e8f0ff;
+    --text: #1a1f2e;
+    --muted: #6b7280;
+    --bg: #f8faff;
+    --card: #ffffff;
+    --border: #e5e9f5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+  nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px; background:#fff; border-bottom:1px solid var(--border);
+    box-shadow:0 1px 12px rgba(59,126,248,0.07); position:relative;
+  }
+  .nav-logo {
+    display:flex; align-items:center; gap:8px;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:17px; color:var(--text);
+    text-decoration:none;
+  }
+  .nav-logo-icon {
+    width:32px; height:32px; background:var(--blue); border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+  .nav-links { display:flex; gap:22px; list-style:none; align-items:center; }
+  .nav-links a { text-decoration:none; color:var(--muted); font-size:14px; font-weight:500; transition:color .2s; }
+  .nav-links a:hover { color:var(--blue); }
+  .nav-right { display:flex; align-items:center; gap:14px; }
+  #nav-auth-area { display:flex; align-items:center; }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:4px; }
+  .hamburger span { width:22px; height:2px; background:var(--text); border-radius:2px; transition:transform .3s,opacity .3s; display:block; }
+  .hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity:0; }
+  .hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  .nav-mobile-menu {
+    display:none; flex-direction:column;
+    position:absolute; top:100%; left:0; right:0;
+    background:#fff; border-bottom:1px solid var(--border);
+    box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:200; padding:8px 0 14px;
+  }
+  .nav-mobile-menu.open { display:flex; }
+  .nav-mobile-menu .nav-links-mobile { list-style:none; display:flex; flex-direction:column; }
+  .nav-mobile-menu .nav-links-mobile a { display:block; padding:11px 24px; font-size:14px; font-weight:500; color:var(--muted); text-decoration:none; }
+  .nav-mobile-menu .nav-links-mobile a:hover { color:var(--blue); background:var(--bg); }
+  .nav-mobile-menu #nav-auth-mobile { display:flex; gap:10px; padding:10px 24px 0; border-top:1px solid var(--border); margin-top:4px; }
+  @media(max-width:700px) {
+    .nav-links { display:none; }
+    #nav-auth-area { display:none; }
+    .hamburger { display:flex; }
+  }
+
+  .auth-page {
+    flex:1; display:flex; align-items:stretch; min-height:calc(100vh - 61px);
+  }
+
+  /* LEFT PANEL */
+  .auth-left {
+    flex:1; background:linear-gradient(145deg,#0f172a 0%,#1e3a8a 40%,#2563eb 100%);
+    display:flex; flex-direction:column; justify-content:center;
+    padding:60px 52px; position:relative; overflow:hidden;
+  }
+  .auth-left::before {
+    content:''; position:absolute; top:-100px; right:-100px;
+    width:350px; height:350px; border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,0.08),transparent 70%);
+  }
+  .auth-left-content { position:relative; z-index:1; max-width:420px; }
+  .auth-left h2 {
+    font-family:'Sora',sans-serif; font-size:clamp(24px,3vw,36px);
+    font-weight:800; color:#fff; margin-bottom:14px; line-height:1.25;
+  }
+  .auth-left h2 span { color:#93c5fd; }
+  .auth-left p { color:rgba(255,255,255,0.75); font-size:15px; line-height:1.8; margin-bottom:34px; }
+
+  .perks-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .perk-card {
+    background:rgba(255,255,255,0.09); border:1px solid rgba(255,255,255,0.15);
+    border-radius:12px; padding:14px 16px; backdrop-filter:blur(6px);
+  }
+  .perk-card .perk-icon { font-size:20px; margin-bottom:6px; }
+  .perk-card strong { display:block; font-size:13px; color:#fff; font-weight:700; margin-bottom:2px; }
+  .perk-card span { font-size:11.5px; color:rgba(255,255,255,0.6); line-height:1.5; }
+
+  /* RIGHT PANEL */
+  .auth-right {
+    width:460px; background:#fff; display:flex; flex-direction:column;
+    justify-content:center; padding:48px 48px;
+    box-shadow:-8px 0 40px rgba(0,0,0,0.06); overflow-y:auto;
+  }
+  .auth-right h1 {
+    font-family:'Sora',sans-serif; font-size:24px; font-weight:800;
+    color:var(--text); margin-bottom:6px;
+  }
+  .auth-sub { color:var(--muted); font-size:14px; margin-bottom:28px; }
+  .auth-sub a { color:var(--blue); text-decoration:none; font-weight:600; }
+
+  .btn-google {
+    width:100%; display:flex; align-items:center; justify-content:center; gap:12px;
+    padding:14px 20px; border-radius:12px; border:1.5px solid #dadce0;
+    background:#fff; font-size:15px; font-weight:600; color:#3c4043;
+    cursor:pointer; transition:box-shadow .2s, border-color .2s, background .15s;
+    margin-bottom:22px; font-family:'DM Sans',sans-serif;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  }
+  .btn-google:hover { box-shadow:0 2px 12px rgba(66,133,244,0.18); border-color:#4285F4; background:#f8f9ff; }
+  .btn-google:disabled { opacity:0.7; cursor:not-allowed; }
+
+  .divider {
+    display:flex; align-items:center; gap:12px;
+    color:var(--muted); font-size:13px; margin-bottom:22px;
+  }
+  .divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .form-row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .form-group input {
+    width:100%; padding:11px 14px; border-radius:9px;
+    border:1.5px solid var(--border); font-size:14px;
+    font-family:'DM Sans',sans-serif; color:var(--text);
+    background:#fafbff; outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .form-group input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,126,248,0.1); background:#fff; }
+
+  .password-strength { margin-top:6px; }
+  .strength-bar { height:4px; border-radius:2px; background:var(--border); overflow:hidden; }
+  .strength-fill { height:100%; width:0%; border-radius:2px; transition:width .3s,background .3s; }
+  .strength-text { font-size:11px; color:var(--muted); margin-top:4px; }
+
+  .terms-check {
+    display:flex; align-items:flex-start; gap:9px; margin-bottom:20px;
+    font-size:13px; color:var(--muted); line-height:1.6;
+  }
+  .terms-check input { margin-top:3px; cursor:pointer; }
+  .terms-check a { color:var(--blue); text-decoration:none; font-weight:600; }
+
+  .btn-register {
+    width:100%; padding:13px; border-radius:10px; border:none;
+    background:var(--blue); color:#fff; font-size:15px; font-weight:700;
+    cursor:pointer; transition:background .2s,transform .15s,box-shadow .2s;
+    box-shadow:0 4px 18px rgba(59,126,248,0.3); font-family:'DM Sans',sans-serif;
+    margin-bottom:14px;
+  }
+  .btn-register:hover { background:var(--blue-dark); transform:translateY(-1px); box-shadow:0 6px 24px rgba(59,126,248,0.4); }
+  .btn-register:disabled { opacity:0.7; cursor:not-allowed; transform:none; }
+
+  .free-badge { display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap; margin-top:14px; }
+  .free-badge span { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); }
+  .free-badge svg { stroke:var(--blue); fill:none; }
+
+  @media(max-width:860px) {
+    .auth-left { display:none; }
+    .auth-right { width:100%; padding:36px 24px; }
+    .form-row2 { grid-template-columns:1fr; }
+  }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .auth-right { animation:fadeUp .5s ease forwards; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="./index.html">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Image Tools
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Terms of Use</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+  </ul>
+
+  <div class="nav-right">
+    <div id="nav-auth-area">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+        <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="nav-mobile-menu" id="navMobileMenu">
+    <ul class="nav-links-mobile">
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./dashboard.html">Dashboard</a></li>
+      <li><a href="./contact.html">Contact</a></li>
+      <li><a href="./terms.html">Terms of Use</a></li>
+      <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    </ul>
+    <div id="nav-auth-mobile">
+      <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+      <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+    </div>
+  </div>
+</nav>
+
+<div class="auth-page">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <h2>Join <span>200,000+</span><br>Image Creators Today</h2>
+      <p>Create your free account and unlock the full power of our AI image editing suite. No credit card required. No hidden fees. Ever.</p>
+      <div class="perks-grid">
+        <div class="perk-card">
+          <div class="perk-icon">🎯</div>
+          <strong>100% Free</strong>
+          <span>All basic tools are free forever with no usage limits</span>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">⚡</div>
+          <strong>Instant Access</strong>
+          <span>Start editing in seconds after sign up</span>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">🔒</div>
+          <strong>Private & Secure</strong>
+          <span>Your images are encrypted and auto-deleted</span>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">🖼️</div>
+          <strong>5 AI Tools</strong>
+          <span>BG Remove, Resize, Watermark, Generate & more</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <h1>Create Free Account</h1>
+    <p class="auth-sub">Already have an account? <a href="./login.html">Sign in →</a></p>
+
+    <button class="btn-google" id="googleBtn" onclick="handleGoogleRegister()">
+      <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      <span id="googleBtnText">Sign up with Google</span>
+    </button>
+
+    <div class="divider">or sign up with email</div>
+
+    <div class="form-row2">
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="firstName" placeholder="Ali" />
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input type="text" id="lastName" placeholder="Hassan" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="regEmail" placeholder="you@example.com" />
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="regPassword" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" />
+      <div class="password-strength">
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+        <div class="strength-text" id="strengthText">Enter a password</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input type="password" id="regPassword2" placeholder="Repeat password" />
+    </div>
+
+    <div class="terms-check">
+      <input type="checkbox" id="agreeTerms" />
+      <label for="agreeTerms">
+        I agree to the <a href="./terms.html">Terms of Service</a> and
+        <a href="./privacy-policy.html">Privacy Policy</a>. I understand that my images are processed securely.
+      </label>
+    </div>
+
+    <button class="btn-register" id="regBtn" onclick="handleRegister()">Create Free Account →</button>
+
+    <div id="regMsg" style="text-align:center;margin-top:8px;font-size:13px;display:none;"></div>
+
+    <div class="free-badge">
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        No credit card
+      </span>
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Free forever
+      </span>
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        No watermark
+      </span>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup
+  } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDMTjMb7GYxDu1agN6TKNAvd3_jtu3eVxs",
+    authDomain: "aiimagetool-7729b.firebaseapp.com",
+    projectId: "aiimagetool-7729b",
+    storageBucket: "aiimagetool-7729b.firebasestorage.app",
+    messagingSenderId: "231926132827",
+    appId: "1:231926132827:web:7c9cf311100bb5f1410f7e",
+    measurementId: "G-FJSJHZHC1R"
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+
+  const googleBtn = document.getElementById('googleBtn');
+  const googleBtnText = document.getElementById('googleBtnText');
+
+  function showMsg(text, color) {
+    const msg = document.getElementById('regMsg');
+    msg.style.display = 'block';
+    msg.style.color = color;
+    msg.textContent = text;
+  }
+
+  function getReturnUrl() { return sessionStorage.getItem('authReturnUrl') || './index.html'; }
+  function clearReturnUrl() { sessionStorage.removeItem('authReturnUrl'); }
+
+  // Google Register — Popup
+  window.handleGoogleRegister = async function() {
+    const provider = new GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+    googleBtnText.textContent = 'Opening Google...';
+    googleBtn.disabled = true;
+    try {
+      const result = await signInWithPopup(auth, provider);
+      if (result && result.user) {
+        showMsg('✓ Google se account ban gaya! Redirect ho raha hai...', '#10b981');
+        const url = getReturnUrl(); clearReturnUrl();
+        setTimeout(() => { window.location.href = url; }, 1000);
+      }
+    } catch (error) {
+      googleBtnText.textContent = 'Sign up with Google';
+      googleBtn.disabled = false;
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        // User ne popup band kiya
+      } else {
+        showMsg('Google sign-up failed: ' + (error.message || error.code), 'red');
+      }
+    }
+  };
+
+  window.checkStrength = function(val) {
+    const fill = document.getElementById('strengthFill');
+    const text = document.getElementById('strengthText');
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^a-zA-Z0-9]/.test(val)) score++;
+    const levels = [
+      { w:'0%', c:'transparent', t:'Enter a password' },
+      { w:'25%', c:'#ef4444', t:'Weak' },
+      { w:'50%', c:'#f59e0b', t:'Fair' },
+      { w:'75%', c:'#3b82f6', t:'Good' },
+      { w:'100%', c:'#10b981', t:'Strong ✓' },
+    ];
+    const l = levels[score];
+    fill.style.width = l.w; fill.style.background = l.c;
+    text.textContent = l.t;
+    text.style.color = l.c === 'transparent' ? '#6b7280' : l.c;
+  };
+
+  window.handleRegister = function() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = document.getElementById('regEmail').value.trim();
+    const pass      = document.getElementById('regPassword').value;
+    const pass2     = document.getElementById('regPassword2').value;
+    const agreed    = document.getElementById('agreeTerms').checked;
+
+    if (!firstName || !email) { showMsg('Please fill in all required fields.', 'red'); return; }
+    if (!email.includes('@')) { showMsg('Please enter a valid email address.', 'red'); return; }
+    if (pass.length < 8) { showMsg('Password must be at least 8 characters.', 'red'); return; }
+    if (pass !== pass2) { showMsg('Passwords do not match.', 'red'); return; }
+    if (!agreed) { showMsg('Please agree to the Terms of Service.', 'red'); return; }
+
+    const btn = document.getElementById('regBtn');
+    btn.textContent = 'Creating account...';
+    btn.disabled = true;
+
+    createUserWithEmailAndPassword(auth, email, pass)
+      .then((userCredential) => updateProfile(userCredential.user, {
+        displayName: `${firstName} ${lastName}`.trim()
+      }))
+      .then(() => {
+        showMsg('✓ Account created! Please sign in...', '#10b981');
+        setTimeout(() => { window.location.href = './login.html?registered=1'; }, 1200);
+      })
+      .catch((error) => {
+        btn.textContent = 'Create Free Account →';
+        btn.disabled = false;
+        const errors = {
+          'auth/email-already-in-use': 'This email is already registered. Try logging in.',
+          'auth/invalid-email': 'Please enter a valid email address.',
+          'auth/weak-password': 'Password too weak. Use at least 8 characters.',
+        };
+        showMsg(errors[error.code] || 'Registration failed. Please try again.', 'red');
+      });
+  };
+</script>
+
+<!-- Shared Auth Nav -->
+<script type="module" src="./auth-nav.js"></script>
+
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const navMobileMenu = document.getElementById('navMobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navMobileMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!hamburger.contains(e.target) && !navMobileMenu.contains(e.target)) {
+      hamburger.classList.remove('active');
+      navMobileMenu.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

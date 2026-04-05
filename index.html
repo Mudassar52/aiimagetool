@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Image Tools - Background Remover & Changer</title>
+<script type="module" src="./auth-nav.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #3b7ef8;
+    --blue-dark: #2563eb;
+    --blue-bright: #2563eb;
+    --blue-light: #e8f0ff;
+    --text: #1a1f2e;
+    --muted: #6b7280;
+    --bg: #f8faff;
+    --card: #ffffff;
+    --border: #e5e9f5;
+    --surface2: #f1f5fd;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+ /* ─── NAV ─── */
+  nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px; background:#fff; border-bottom:1px solid #e5e9f5;
+    position:sticky; top:0; z-index:100;
+    box-shadow:0 1px 12px rgba(59,126,248,0.07);
+  }
+  .nav-logo {
+    display:flex; align-items:center; gap:8px;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:17px; color:var(--text);
+    text-decoration:none;
+  }
+  .nav-logo-icon {
+    width:32px; height:32px; background:var(--blue); border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+  .nav-links { display:flex; gap:22px; list-style:none; align-items:center; }
+  .nav-links a { text-decoration:none; color:#6b7280; font-size:14px; font-weight:500; transition:color .2s; }
+  .nav-links a:hover { color:#3b7ef8; }
+  .nav-right { display:flex; align-items:center; gap:14px; }
+  #nav-auth-area { display:flex; align-items:center; }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:4px; }
+  .hamburger span { width:22px; height:2px; background:#1a1f2e; border-radius:2px; transition:transform .3s,opacity .3s; display:block; }
+  .hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity:0; }
+  .hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  .nav-mobile-menu { display:none; flex-direction:column; position:absolute; top:100%; left:0; right:0; background:#fff; border-bottom:1px solid #e5e9f5; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:200; padding:8px 0 14px; }
+  .nav-mobile-menu.open { display:flex; }
+  .nav-mobile-menu .nav-links-mobile { list-style:none; display:flex; flex-direction:column; }
+  .nav-mobile-menu .nav-links-mobile a { display:block; padding:11px 24px; font-size:14px; font-weight:500; color:#6b7280; text-decoration:none; }
+  .nav-mobile-menu .nav-links-mobile a:hover { color:#3b7ef8; background:#f8faff; }
+  .nav-mobile-menu #nav-auth-mobile { display:flex; gap:10px; padding:10px 24px 0; border-top:1px solid #e5e9f5; margin-top:4px; flex-wrap:wrap; }
+  @media(max-width:700px) { .nav-links { display:none; } #nav-auth-area { display:none; } .hamburger { display:flex; } }
+
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(160deg, #dce8ff 0%, #eaf0ff 40%, #f0f4ff 70%, #e4efff 100%);
+    padding: 70px 24px 80px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(59,126,248,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: -60px; left: -60px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(59,126,248,0.09) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero h1 {
+    font-family: 'Sora', sans-serif; font-size: clamp(26px, 6vw, 42px);
+    font-weight: 800; line-height: 1.2; color: var(--text);
+    max-width: 600px; margin: 0 auto 16px;
+    animation: fadeUp .6s ease forwards;
+  }
+  .hero h1 span { color: var(--blue); }
+  .hero p {
+    color: var(--muted); font-size: 15px; max-width: 420px;
+    margin: 0 auto 32px; line-height: 1.7;
+    animation: fadeUp .6s .1s ease forwards; opacity: 0;
+  }
+  .hero-btns {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    animation: fadeUp .6s .2s ease forwards; opacity: 0;
+  }
+  .btn-primary {
+    background: var(--blue); color: #fff;
+    border: none; padding: 13px 26px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    box-shadow: 0 4px 18px rgba(59,126,248,0.3);
+  }
+  .btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(59,126,248,0.4); }
+  .btn-outline {
+    background: #fff; color: var(--text);
+    border: 1.5px solid var(--border); padding: 13px 26px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: border-color .2s, transform .15s;
+  }
+  .btn-outline:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-1px); }
+
+  /* SECTIONS */
+  section { padding: 60px 24px; }
+  .section-title {
+    font-family: 'Sora', sans-serif; font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700; text-align: center; margin-bottom: 36px;
+  }
+  .section-title span { color: var(--blue); }
+
+  /* TOOLS */
+  .tools-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px; max-width: 760px; margin: 0 auto;
+  }
+  .tool-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 28px 24px;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .tool-card:hover { box-shadow: 0 8px 32px rgba(59,126,248,0.12); transform: translateY(-3px); }
+  .tool-icon {
+    width: 48px; height: 48px; background: var(--blue-light);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .tool-icon svg { width: 22px; height: 22px; stroke: var(--blue); fill: none; stroke-width: 2; }
+  .tool-card h3 { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .tool-card p { color: var(--muted); font-size: 13.5px; line-height: 1.65; margin-bottom: 20px; }
+  .btn-sm {
+    background: var(--blue); color: #fff;
+    border: none; padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-sm:hover { background: var(--blue-dark); }
+
+  /* HOW IT WORKS */
+  .hiw-bg { background: #fff; }
+  .steps {
+    display: flex; gap: 12px; justify-content: center;
+    flex-wrap: wrap; max-width: 700px; margin: 0 auto;
+  }
+  .step { text-align: center; flex: 1; min-width: 140px; max-width: 200px; }
+  .step-icon-wrap { position: relative; display: inline-block; margin-bottom: 14px; }
+  .step-icon {
+    width: 64px; height: 64px; background: var(--blue-light);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+  .step-icon svg { width: 26px; height: 26px; stroke: var(--blue); fill: none; stroke-width: 2; }
+  .step-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 22px; height: 22px; background: var(--blue); color: #fff;
+    border-radius: 50%; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Sora', sans-serif;
+  }
+  .step h4 { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .step p { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+
+  /* WHY CHOOSE US */
+  .why-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px; max-width: 760px; margin: 0 auto;
+  }
+  .why-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 22px 16px; text-align: center;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .why-card:hover { box-shadow: 0 6px 22px rgba(59,126,248,0.1); transform: translateY(-2px); }
+  .why-icon {
+    width: 44px; height: 44px; background: var(--blue-light);
+    border-radius: 10px; margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .why-icon svg { width: 20px; height: 20px; stroke: var(--blue); fill: none; stroke-width: 2; }
+  .why-card h4 { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .why-card p { color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+
+  /* FAQ */
+  .faq-bg { background: #fff; }
+  .faq-list { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .faq-item { border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .faq-q {
+    width: 100%; display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; background: #fff; cursor: pointer;
+    font-size: 14px; font-weight: 600; text-align: left; border: none;
+    font-family: 'DM Sans', sans-serif; color: var(--text);
+    transition: background .15s;
+  }
+  .faq-q:hover { background: var(--blue-light); }
+  .faq-q svg { width: 16px; height: 16px; stroke: var(--muted); flex-shrink: 0; transition: transform .3s; fill: none; stroke-width: 2; }
+  .faq-a {
+    padding: 0 20px; max-height: 0; overflow: hidden;
+    font-size: 13.5px; color: var(--muted); line-height: 1.7;
+    transition: max-height .3s ease, padding .3s;
+  }
+  .faq-item.open .faq-a { max-height: 200px; padding: 0 20px 16px; }
+  .faq-item.open .faq-q svg { transform: rotate(180deg); }
+
+  /* FOOTER */
+  .site-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  .footer-top {
+    max-width: 1020px; margin: 0 auto;
+    padding: 52px 24px 36px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 780px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-brand .nav-logo {
+    display: inline-flex; margin-bottom: 14px;
+  }
+  .footer-brand p {
+    font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 240px; margin-bottom: 20px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .footer-social-btn:hover {
+    background: rgba(37,99,235,0.1); border-color: var(--blue-bright); color: var(--blue);
+  }
+  .footer-social-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .footer-col h5 {
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text); letter-spacing: .6px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--blue); }
+  .footer-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .footer-bottom {
+    max-width: 1020px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .footer-copy {
+    font-size: 12.5px; color: var(--muted);
+  }
+  .footer-copy a { color: var(--blue); text-decoration: none; }
+  .footer-copy a:hover { text-decoration: underline; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.18);
+    color: var(--blue); font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: .4px;
+  }
+  .footer-badge svg { width: 10px; height: 10px; fill: var(--blue); stroke: none; }
+
+  
+  /* HERO IMAGE & BLUE OVERLAY */
+  .hero {
+    background: linear-gradient(135deg, #1a3a8f 0%, #2563eb 40%, #3b7ef8 70%, #1e4fd8 100%) !important;
+    position: relative;
+  }
+  .hero-bg-img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0.13; z-index: 0;
+  }
+  .hero > *:not(.hero-bg-img):not(.hero-float) { position: relative; z-index: 1; }
+  .hero h1 { color: #fff !important; }
+  .hero h1 span { color: #93c5fd !important; }
+  .hero p { color: rgba(255,255,255,0.82) !important; }
+  .btn-outline { background: rgba(255,255,255,0.15) !important; color: #fff !important; border-color: rgba(255,255,255,0.4) !important; backdrop-filter: blur(6px); }
+  .btn-outline:hover { background: rgba(255,255,255,0.28) !important; border-color: #fff !important; }
+
+  /* HERO STATS */
+  .hero-stats {
+    display: flex; gap: 32px; justify-content: center; flex-wrap: wrap;
+    margin-top: 36px; position: relative; z-index: 1;
+    animation: fadeUp .6s .35s ease forwards; opacity: 0;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num { font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 800; color: #fff; }
+  .hero-stat .lbl { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+
+  /* FLOATING ANIMATION ELEMENTS */
+  .hero-float {
+    position: absolute; border-radius: 14px;
+    background: rgba(255,255,255,0.13); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; font-size: 12px; font-weight: 600; color: #fff;
+    z-index: 2; pointer-events: none;
+  }
+  .hero-float svg { width: 16px; height: 16px; stroke: #93c5fd; fill: none; stroke-width: 2; }
+  .hero-float-1 { top: 18%; left: 6%; animation: floatA 4s ease-in-out infinite; }
+  .hero-float-2 { top: 20%; right: 6%; animation: floatB 4.5s ease-in-out infinite; }
+  .hero-float-3 { bottom: 22%; left: 8%; animation: floatA 5s ease-in-out infinite .5s; }
+  .hero-float-4 { bottom: 18%; right: 7%; animation: floatB 3.8s ease-in-out infinite .8s; }
+
+  @keyframes floatA { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
+  @keyframes floatB { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-8px)} }
+
+  /* DEMO SECTION */
+  .demo-section { background: var(--blue-light); }
+  .demo-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px; max-width: 820px; margin: 0 auto;
+  }
+  .demo-card {
+    background: #fff; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(59,126,248,0.1);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .demo-card:hover { transform: translateY(-4px); box-shadow: 0 10px 36px rgba(59,126,248,0.18); }
+  .demo-imgs {
+    display: grid; grid-template-columns: 1fr 1fr;
+    height: 190px; position: relative;
+  }
+  .demo-imgs img { width: 100%; height: 100%; object-fit: cover; }
+  .demo-imgs img:first-child { border-right: 2px solid #fff; }
+  .demo-arrow {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 32px; height: 32px; background: var(--blue);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #fff; z-index: 2;
+  }
+  .demo-arrow svg { width: 14px; height: 14px; stroke: #fff; fill: none; stroke-width: 2.5; }
+  .demo-card-body { padding: 18px 20px; }
+  .demo-card-body h4 { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .demo-card-body p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+  @media (max-width: 600px) {
+    .nav-menu { display: none; }
+    .hamburger { display: flex; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .steps { flex-direction: column; align-items: center; }
+    .hero-float-1, .hero-float-2 { display: none; }
+    .hero-float-3, .hero-float-4 { display: none; }
+    .usecase-grid { grid-template-columns: 1fr 1fr; }
+    .usecase-card { height: 190px; }
+    .testi-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 400px) {
+    .usecase-grid { grid-template-columns: 1fr; }
+  }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* SCROLL REVEAL */
+  .reveal { opacity: 0; transform: translateY(36px); transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+  .reveal.from-left { transform: translateX(-36px); }
+  .reveal.from-right { transform: translateX(36px); }
+  .reveal.zoom { transform: scale(0.92); opacity: 0; }
+  .reveal.visible { opacity: 1 !important; transform: none !important; }
+
+  /* COUNTER ANIMATION */
+  .count-up { display: inline-block; }
+
+  /* TOOL CARD PREVIEW IMAGE */
+  .tool-card-preview {
+    width: 100%; height: 180px; border-radius: 10px; overflow: hidden;
+    margin-bottom: 18px; position: relative;
+    box-shadow: 0 2px 14px rgba(59,126,248,0.12);
+  }
+
+  /* BEFORE/AFTER SLIDER */
+  .ba-container {
+    width: 100%; height: 100%; position: relative; overflow: hidden; border-radius: 10px;
+    user-select: none; cursor: ew-resize;
+  }
+  .ba-after, .ba-before {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+  }
+  .ba-after img, .ba-before img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ba-before { clip-path: inset(0 50% 0 0); }
+  .ba-slider-line {
+    position: absolute; top: 0; bottom: 0; left: 50%;
+    width: 2px; background: #fff; z-index: 3; pointer-events: none;
+    box-shadow: 0 0 8px rgba(0,0,0,0.25);
+  }
+  .ba-handle {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px; height: 36px; background: #fff;
+    border-radius: 50%; z-index: 4; cursor: ew-resize;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    border: 2.5px solid var(--blue);
+  }
+  .ba-handle svg { width: 16px; height: 16px; stroke: var(--blue); fill: none; stroke-width: 2.5; }
+  .ba-label {
+    position: absolute; bottom: 8px; font-size: 11px; font-weight: 700;
+    color: #fff; background: rgba(0,0,0,0.45); padding: 3px 8px; border-radius: 20px; z-index: 5;
+    pointer-events: none;
+  }
+  .ba-label.lbl-before { left: 8px; }
+  .ba-label.lbl-after { right: 8px; }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-bg { background: linear-gradient(160deg, #1a3a8f 0%, #2563eb 60%, #3b7ef8 100%); }
+  .testimonials-bg .section-title { color: #fff; }
+  .testimonials-bg .section-title span { color: #93c5fd; }
+  .testi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px; max-width: 900px; margin: 0 auto;
+  }
+  .testi-card {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 18px; padding: 26px 24px;
+    backdrop-filter: blur(10px);
+    transition: transform .25s, background .25s;
+  }
+  .testi-card:hover { transform: translateY(-4px); background: rgba(255,255,255,0.17); }
+  .testi-stars { display: flex; gap: 3px; margin-bottom: 14px; }
+  .testi-stars svg { width: 14px; height: 14px; fill: #fbbf24; stroke: none; }
+  .testi-text {
+    color: rgba(255,255,255,0.9); font-size: 13.5px; line-height: 1.75;
+    margin-bottom: 18px; font-style: italic;
+  }
+  .testi-author { display: flex; align-items: center; gap: 12px; }
+  .testi-avatar {
+    width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .testi-name { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; color: #fff; }
+  .testi-role { font-size: 11.5px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+  /* ── USE CASES ── */
+  .usecase-bg { background: #fff; }
+  .usecase-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px; max-width: 960px; margin: 0 auto;
+  }
+  .usecase-card {
+    border-radius: 18px; overflow: hidden; position: relative;
+    height: 240px; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: transform .3s, box-shadow .3s;
+  }
+  .usecase-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 14px 40px rgba(59,126,248,0.22); }
+  .usecase-card img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform .4s;
+  }
+  .usecase-card:hover img { transform: scale(1.07); }
+  .usecase-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 30%, rgba(15,25,60,0.82) 100%);
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 18px 16px;
+  }
+  .usecase-tag {
+    display: inline-block; background: var(--blue); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    margin-bottom: 7px; width: fit-content; letter-spacing: .4px; text-transform: uppercase;
+  }
+  .usecase-card h4 { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .usecase-card p { font-size: 11.5px; color: rgba(255,255,255,0.72); line-height: 1.5; }
+  .bgc-wrap {
+    width: 100%; height: 100%; position: relative; border-radius: 10px; overflow: hidden;
+  }
+  .bgc-bg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; transition: opacity .6s ease;
+  }
+  .bgc-subject {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 2;
+  }
+  .bgc-dots {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; z-index: 4;
+  }
+  .bgc-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    border: 1.5px solid #fff; cursor: pointer;
+    background: rgba(255,255,255,0.35);
+    transition: background .3s, transform .2s;
+  }
+  /* ─── 3D TOOLS SECTION ─── */
+  .tools-section-3d { padding:70px 24px; background:#fff; }
+  .tools-3d-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:28px; max-width:1100px; margin:0 auto;
+  }
+  .flip-card {
+    height:380px; perspective:1000px; cursor:pointer;
+  }
+  .flip-card-inner {
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d;
+    transition:transform .65s cubic-bezier(.4,0,.2,1);
+  }
+  .flip-card:hover .flip-card-inner { transform:rotateY(180deg); }
+  .flip-card-front, .flip-card-back {
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:20px; overflow:hidden;
+  }
+  /* FRONT */
+  .flip-card-front {
+    border:1.5px solid var(--border);
+    background:#fff; box-shadow:0 4px 24px rgba(59,126,248,0.08);
+  }
+  .flip-front-img {
+    width:100%; height:200px; object-fit:cover; display:block;
+  }
+  .flip-front-img-placeholder {
+    width:100%; height:200px; display:flex; align-items:center; justify-content:center;
+    font-size:48px;
+  }
+  .flip-front-body { padding:22px 22px 20px; }
+  .flip-front-icon {
+    width:42px; height:42px; background:var(--blue-light); border-radius:10px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+  }
+  .flip-front-icon svg { width:20px; height:20px; stroke:var(--blue); fill:none; stroke-width:2; }
+  .flip-front-body h3 { font-family:'Sora',sans-serif; font-size:17px; font-weight:700; margin-bottom:6px; color:var(--text); }
+  .flip-front-body p { font-size:13px; color:var(--muted); line-height:1.65; }
+  .flip-hint {
+    position:absolute; bottom:14px; right:16px;
+    font-size:11px; color:var(--blue); font-weight:600; opacity:0.7;
+    display:flex; align-items:center; gap:4px;
+  }
+  .flip-hint svg { width:12px; height:12px; stroke:var(--blue); fill:none; stroke-width:2; }
+  /* BACK */
+  .flip-card-back {
+    transform:rotateY(180deg);
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    padding:32px 28px; text-align:center;
+    color:#fff;
+  }
+  .flip-back-icon {
+    width:64px; height:64px; background:rgba(255,255,255,0.2); border-radius:18px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:20px;
+    border:1.5px solid rgba(255,255,255,0.3);
+  }
+  .flip-back-icon svg { width:30px; height:30px; stroke:#fff; fill:none; stroke-width:2; }
+  .flip-card-back h3 { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; margin-bottom:12px; }
+  .flip-card-back p { font-size:13.5px; line-height:1.75; opacity:0.88; margin-bottom:24px; }
+  .flip-back-features { list-style:none; display:flex; flex-direction:column; gap:8px; margin-bottom:24px; width:100%; }
+  .flip-back-features li {
+    display:flex; align-items:center; gap:8px;
+    font-size:12.5px; font-weight:600; opacity:0.9;
+  }
+  .flip-back-features li::before { content:'✓'; font-weight:800; }
+  .flip-back-btn {
+    background:#fff; border:none; border-radius:10px;
+    padding:12px 26px; font-size:14px; font-weight:700;
+    cursor:pointer; font-family:'DM Sans',sans-serif;
+    transition:transform .2s, box-shadow .2s;
+    text-decoration:none; display:inline-block;
+  }
+  .flip-back-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.2); }
+
+  /* Tool colors */
+  .tool-bg-remover .flip-card-back { background:linear-gradient(135deg,#1a3a8f,#3b7ef8); }
+  .tool-bg-remover .flip-back-btn { color:#2563eb; }
+  .tool-bg-changer .flip-card-back { background:linear-gradient(135deg,#0f4c3a,#10b981); }
+  .tool-bg-changer .flip-back-btn { color:#059669; }
+  .tool-obj-remover .flip-card-back { background:linear-gradient(135deg,#6b21a8,#a855f7); }
+  .tool-obj-remover .flip-back-btn { color:#7c3aed; }
+  .tool-resizer .flip-card-back { background:linear-gradient(135deg,#9a3412,#f97316); }
+  .tool-resizer .flip-back-btn { color:#ea580c; }
+  .tool-watermark .flip-card-back { background:linear-gradient(135deg,#1e3a5f,#0ea5e9); }
+  .tool-watermark .flip-back-btn { color:#0284c7; }
+  .tool-converter .flip-card-back { background:linear-gradient(135deg,#831843,#ec4899); }
+  .tool-converter .flip-back-btn { color:#db2777; }
+
+  @media(max-width:640px) {
+    .tools-3d-grid { grid-template-columns:1fr; gap:20px; }
+    .flip-card { height:340px; }
+    .flip-front-img, .flip-front-img-placeholder { height:170px; }
+  }
+
+  /* ─── WHY AI SECTION (text + image) ─── */
+  .why-ai-section { padding:80px 24px; background:#fff; }
+  .why-ai-container {
+    max-width:1040px; margin:0 auto;
+    display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center;
+  }
+  .why-ai-img-wrap {
+    position:relative; border-radius:24px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(37,99,235,0.15);
+  }
+  .why-ai-img-wrap img { width:100%; display:block; border-radius:24px; }
+  .why-ai-badge {
+    position:absolute; bottom:20px; left:20px;
+    background:rgba(255,255,255,0.95); border-radius:14px;
+    padding:12px 18px; display:flex; align-items:center; gap:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  }
+  .why-ai-badge-icon {
+    width:36px; height:36px; background:var(--blue-light); border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .why-ai-badge-icon svg { width:18px; height:18px; stroke:var(--blue); fill:none; stroke-width:2; }
+  .why-ai-badge strong { display:block; font-size:13px; font-weight:700; color:var(--text); }
+  .why-ai-badge span { font-size:11px; color:var(--muted); }
+  .why-ai-text .section-label-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(59,126,248,0.10); border:1px solid rgba(59,126,248,0.2);
+    color:var(--blue); font-size:11px; font-weight:700;
+    padding:5px 14px; border-radius:20px; margin-bottom:16px;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .why-ai-text h2 {
+    font-family:'Sora',sans-serif; font-size:clamp(24px,3.5vw,36px);
+    font-weight:800; color:var(--text); line-height:1.2; margin-bottom:14px;
+  }
+  .why-ai-text h2 span { color:var(--blue); }
+  .why-ai-text p { color:var(--muted); font-size:14.5px; line-height:1.8; margin-bottom:28px; }
+  .why-ai-points { display:flex; flex-direction:column; gap:16px; margin-bottom:32px; }
+  .why-ai-point {
+    display:flex; align-items:flex-start; gap:14px;
+  }
+  .why-ai-point-icon {
+    width:40px; height:40px; border-radius:10px; background:var(--blue-light);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .why-ai-point-icon svg { width:18px; height:18px; stroke:var(--blue); fill:none; stroke-width:2; }
+  .why-ai-point-text strong { display:block; font-size:14px; font-weight:700; color:var(--text); margin-bottom:3px; }
+  .why-ai-point-text span { font-size:13px; color:var(--muted); line-height:1.6; }
+  .why-ai-cta {
+    display:flex; gap:12px; flex-wrap:wrap;
+  }
+  @media(max-width:860px) {
+    .why-ai-container { grid-template-columns:1fr; gap:36px; }
+    .why-ai-img-wrap { max-width:500px; margin:0 auto; }
+  }
+  @media(max-width:500px) {
+    .why-ai-section { padding:50px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="./index.html">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Image Tools
+  </a>
+  <ul class="nav-links">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Terms of Use</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+  </ul>
+  <div class="nav-right">
+    <div id="nav-auth-area">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+        <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile-menu" id="navMobileMenu">
+    <ul class="nav-links-mobile">
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./dashboard.html">Dashboard</a></li>
+      <li><a href="./contact.html">Contact</a></li>
+      <li><a href="./terms.html">Terms of Use</a></li>
+      <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    </ul>
+    <div id="nav-auth-mobile">
+      <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+      <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section class="hero">
+  <img class="hero-bg-img" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1400&auto=format&fit=crop&q=80" alt="" />
+
+  <!-- Floating badges -->
+  <div class="hero-float hero-float-1">
+    <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    AI Powered
+  </div>
+  <div class="hero-float hero-float-2">
+    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    No Watermark
+  </div>
+  <div class="hero-float hero-float-3">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Instant Results
+  </div>
+  <div class="hero-float hero-float-4">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    HD Quality
+  </div>
+
+  <h1>AI Image <span>Background</span><br><span>Remover</span> & Changer</h1>
+  <p>Remove or change image backgrounds instantly with AI. Fast, free, and high quality results in seconds.</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="window.location.href='bg-remover.html'">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+      Remove Background
+    </button>
+    <button class="btn-outline" onclick="window.location.href='bg-changer.html'">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Change Background
+    </button>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num"><span class="count-up" data-target="5000000">0</span>+</div>
+      <div class="lbl">Images Processed</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num"><span class="count-up" data-target="98">0</span>%</div>
+      <div class="lbl">Accuracy Rate</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num"><span class="count-up" data-target="200000">0</span>+</div>
+      <div class="lbl">Happy Users</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num"><span class="count-up" data-target="3">0</span>s</div>
+      <div class="lbl">Avg Process Time</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY AI SECTION -->
+<section class="why-ai-section">
+  <div class="why-ai-container">
+    <div class="why-ai-img-wrap reveal from-left">
+      <img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=700&h=600&fit=crop&q=85" alt="AI Image Processing" />
+      <div class="why-ai-badge">
+        <div class="why-ai-badge-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div>
+          <strong>AI-Powered</strong>
+          <span>Instant Results in Seconds</span>
+        </div>
+      </div>
+    </div>
+    <div class="why-ai-text reveal from-right">
+      <div class="section-label-pill">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+        Why Choose Us
+      </div>
+      <h2>Professional Image Editing<br>Made <span>Simple with AI</span></h2>
+      <p>Our AI tools eliminate the need for expensive software or design skills. Get studio-quality results in seconds — completely free, no watermark, no signup required.</p>
+      <div class="why-ai-points">
+        <div class="why-ai-point">
+          <div class="why-ai-point-icon">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div class="why-ai-point-text">
+            <strong>Lightning Fast Processing</strong>
+            <span>Our AI processes your images in under 3 seconds — no waiting, no queues.</span>
+          </div>
+        </div>
+        <div class="why-ai-point">
+          <div class="why-ai-point-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="why-ai-point-text">
+            <strong>Pixel-Perfect Accuracy</strong>
+            <span>Advanced edge detection handles hair, fur, and complex details effortlessly.</span>
+          </div>
+        </div>
+        <div class="why-ai-point">
+          <div class="why-ai-point-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="why-ai-point-text">
+            <strong>100% Private & Secure</strong>
+            <span>Your images are processed securely and deleted automatically after download.</span>
+          </div>
+        </div>
+        <div class="why-ai-point">
+          <div class="why-ai-point-icon">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="why-ai-point-text">
+            <strong>Free Forever — No Watermark</strong>
+            <span>All basic tools are completely free with no hidden charges or watermarks.</span>
+          </div>
+        </div>
+      </div>
+      <div class="why-ai-cta">
+        <button class="btn-primary" onclick="window.location.href='bg-remover.html'">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Try Free Now
+        </button>
+        <button class="btn-outline" onclick="document.querySelector('.tools-section-3d').scrollIntoView({behavior:'smooth'})">
+          View All Tools →
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- OUR TOOLS - 3D FLIP CARDS -->
+<section class="tools-section-3d">
+  <h2 class="section-title reveal">Our <span>AI Tools</span></h2>
+  <p style="text-align:center;color:var(--muted);font-size:14px;max-width:460px;margin:-20px auto 44px;line-height:1.7;" class="reveal">Hover over each tool to see features. Click to get started instantly.</p>
+  <div class="tools-3d-grid">
+
+    <!-- BG REMOVER -->
+    <div class="flip-card tool-bg-remover reveal" style="transition-delay:.0s">
+      <div class="flip-card-inner">
+        <div class="flip-card-front">
+          <img class="flip-front-img" src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&h=400&fit=crop&q=85" alt="Background Remover" />
+          <div class="flip-front-body">
+            <div class="flip-front-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <h3>Background Remover</h3>
+            <p>Remove any background instantly with AI precision. Perfect for products & portraits.</p>
+          </div>
+          <div class="flip-hint"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Hover to flip</div>
+        </div>
+        <div class="flip-card-back">
+          <div class="flip-back-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h3>Background Remover</h3>
+          <p>AI-powered precision removal in seconds</p>
+          <ul class="flip-back-features">
+            <li>Transparent PNG output</li>
+            <li>Hair & fur edge detection</li>
+            <li>Batch processing support</li>
+            <li>No watermark, 100% free</li>
+          </ul>
+          <a href="./bg-remover.html" class="flip-back-btn">Remove Background →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- BG CHANGER -->
+    <div class="flip-card tool-bg-changer reveal" style="transition-delay:.08s">
+      <div class="flip-card-inner">
+        <div class="flip-card-front">
+          <img class="flip-front-img" src="https://images.unsplash.com/photo-1518791841217-8f162f1912da?w=600&h=400&fit=crop&q=85" alt="Background Changer" />
+          <div class="flip-front-body">
+            <div class="flip-front-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div>
+            <h3>Background Changer</h3>
+            <p>Swap backgrounds with custom images, colors, or gradients in one click.</p>
+          </div>
+          <div class="flip-hint"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Hover to flip</div>
+        </div>
+        <div class="flip-card-back">
+          <div class="flip-back-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <h3>Background Changer</h3>
+          <p>Replace backgrounds with anything you want</p>
+          <ul class="flip-back-features">
+            <li>Custom image backgrounds</li>
+            <li>Solid & gradient colors</li>
+            <li>Preset studio backgrounds</li>
+            <li>Adjust & position subject</li>
+          </ul>
+          <a href="./bg-changer.html" class="flip-back-btn">Change Background →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBJECT REMOVER -->
+    <div class="flip-card tool-obj-remover reveal" style="transition-delay:.16s">
+      <div class="flip-card-inner">
+        <div class="flip-card-front">
+          <img class="flip-front-img" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=400&fit=crop&q=85" alt="Object Remover" />
+          <div class="flip-front-body">
+            <div class="flip-front-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
+            <h3>Object Remover</h3>
+            <p>Erase unwanted objects, people, or text from photos like they were never there.</p>
+          </div>
+          <div class="flip-hint"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Hover to flip</div>
+        </div>
+        <div class="flip-card-back">
+          <div class="flip-back-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <h3>Object Remover</h3>
+          <p>Clean up photos by removing anything unwanted</p>
+          <ul class="flip-back-features">
+            <li>Remove people & objects</li>
+            <li>Erase text & watermarks</li>
+            <li>Smart fill technology</li>
+            <li>Before/After comparison</li>
+          </ul>
+          <a href="./obj-remover.html" class="flip-back-btn">Remove Objects →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMAGE RESIZER -->
+    <div class="flip-card tool-resizer reveal" style="transition-delay:.24s">
+      <div class="flip-card-inner">
+        <div class="flip-card-front">
+          <img class="flip-front-img" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop&q=85" alt="Image Resizer" />
+          <div class="flip-front-body">
+            <div class="flip-front-icon">
+              <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </div>
+            <h3>Image Resizer</h3>
+            <p>Resize images to exact dimensions for any platform — social media, web, print.</p>
+          </div>
+          <div class="flip-hint"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Hover to flip</div>
+        </div>
+        <div class="flip-card-back">
+          <div class="flip-back-icon">
+            <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </div>
+          <h3>Image Resizer</h3>
+          <p>Resize to any dimension while keeping quality</p>
+          <ul class="flip-back-features">
+            <li>Custom px or % resize</li>
+            <li>Social media presets</li>
+            <li>Maintain aspect ratio</li>
+            <li>Bulk resize support</li>
+          </ul>
+          <a href="./img-resizer.html" class="flip-back-btn">Resize Image →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- WATERMARK -->
+    <div class="flip-card tool-watermark reveal" style="transition-delay:.32s">
+      <div class="flip-card-inner">
+        <div class="flip-card-front">
+          <img class="flip-front-img" src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&h=400&fit=crop&q=85" alt="Watermark Tool" />
+          <div class="flip-front-body">
+            <div class="flip-front-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3>Watermark Tool</h3>
+            <p>Add text or logo watermarks to protect your photos and brand your content.</p>
+          </div>
+          <div class="flip-hint"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Hover to flip</div>
+        </div>
+        <div class="flip-card-back">
+          <div class="flip-back-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Watermark Tool</h3>
+          <p>Protect your images with custom watermarks</p>
+          <ul class="flip-back-features">
+            <li>Text & logo watermarks</li>
+            <li>Adjust opacity & position</li>
+            <li>Multiple font styles</li>
+            <li>Batch watermarking</li>
+          </ul>
+          <a href="./watermark.html" class="flip-back-btn">Add Watermark →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMAGE CONVERTER -->
+    <div class="flip-card tool-converter reveal" style="transition-delay:.40s">
+      <div class="flip-card-inner">
+        <div class="flip-card-front">
+          <img class="flip-front-img" src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&h=400&fit=crop&q=85" alt="Image Converter" />
+          <div class="flip-front-body">
+            <div class="flip-front-icon">
+              <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            </div>
+            <h3>Image Converter</h3>
+            <p>Convert images between JPG, PNG, WEBP, and more formats instantly.</p>
+          </div>
+          <div class="flip-hint"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Hover to flip</div>
+        </div>
+        <div class="flip-card-back">
+          <div class="flip-back-icon">
+            <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          </div>
+          <h3>Image Converter</h3>
+          <p>Convert any image format in seconds</p>
+          <ul class="flip-back-features">
+            <li>JPG, PNG, WEBP, BMP</li>
+            <li>Quality control slider</li>
+            <li>Lossless conversion</li>
+            <li>Drag & drop interface</li>
+          </ul>
+          <a href="./img-converter.html" class="flip-back-btn">Convert Image →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="hiw-bg">
+  <h2 class="section-title reveal">How It <span>Works</span></h2>
+  <div class="steps">
+    <div class="step reveal" style="transition-delay:.05s">
+      <div class="step-icon-wrap">
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        </div>
+        <div class="step-badge">1</div>
+      </div>
+      <h4>Upload Image</h4>
+      <p>Drag & drop or select your image file</p>
+    </div>
+    <div class="step reveal" style="transition-delay:.15s">
+      <div class="step-icon-wrap">
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        </div>
+        <div class="step-badge">2</div>
+      </div>
+      <h4>AI Processing</h4>
+      <p>Our AI removes or changes the background</p>
+    </div>
+    <div class="step reveal" style="transition-delay:.25s">
+      <div class="step-icon-wrap">
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 15v4a2 2 0 002 2h14a2 2 0 002-2v-4M7 10l5 5 5-5M12 3v12"/></svg>
+        </div>
+        <div class="step-badge">3</div>
+      </div>
+      <h4>Download Result</h4>
+      <p>Get your HD image instantly</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section>
+  <h2 class="section-title reveal">Why Choose <span>Us</span></h2>
+  <div class="why-grid">
+    <div class="why-card reveal zoom" style="transition-delay:.0s">
+      <div class="why-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <h4>Fast Processing</h4>
+      <p>Results in seconds, not minutes</p>
+    </div>
+    <div class="why-card reveal zoom" style="transition-delay:.08s">
+      <div class="why-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <h4>HD Quality</h4>
+      <p>High-resolution output every time</p>
+    </div>
+    <div class="why-card reveal zoom" style="transition-delay:.16s">
+      <div class="why-icon">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <h4>Free to Use</h4>
+      <p>No signup required to get started</p>
+    </div>
+    <div class="why-card reveal zoom" style="transition-delay:.24s">
+      <div class="why-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h4>No Watermark</h4>
+      <p>Clean downloads without branding</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 — USE CASES / INDUSTRIES
+══════════════════════════════════════════ -->
+<section class="usecase-bg">
+  <h2 class="section-title reveal">Perfect For <span>Every Industry</span></h2>
+  <p style="text-align:center;color:var(--muted);font-size:14px;max-width:480px;margin:-20px auto 36px;line-height:1.7;" class="reveal">From e-commerce to social media, our AI background tools fit every need.</p>
+  <div class="usecase-grid">
+
+    <div class="usecase-card reveal zoom" style="transition-delay:.0s">
+      <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop&q=80" alt="E-Commerce" />
+      <div class="usecase-overlay">
+        <span class="usecase-tag">E-Commerce</span>
+        <h4>Product Photography</h4>
+        <p>Clean white or custom backgrounds for your product listings</p>
+      </div>
+    </div>
+
+    <div class="usecase-card reveal zoom" style="transition-delay:.07s">
+      <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop&q=80" alt="Healthcare" />
+      <div class="usecase-overlay">
+        <span class="usecase-tag">Healthcare</span>
+        <h4>Professional Portraits</h4>
+        <p>Clean, professional backgrounds for staff & doctor profiles</p>
+      </div>
+    </div>
+
+    <div class="usecase-card reveal zoom" style="transition-delay:.14s">
+      <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=300&fit=crop&q=80" alt="Corporate" />
+      <div class="usecase-overlay">
+        <span class="usecase-tag">Corporate</span>
+        <h4>Team Headshots</h4>
+        <p>Consistent branded backgrounds for your entire team</p>
+      </div>
+    </div>
+
+    <div class="usecase-card reveal zoom" style="transition-delay:.21s">
+      <img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&h=300&fit=crop&q=80" alt="Social Media" />
+      <div class="usecase-overlay">
+        <span class="usecase-tag">Social Media</span>
+        <h4>Content Creation</h4>
+        <p>Eye-catching visuals for Instagram, TikTok & YouTube</p>
+      </div>
+    </div>
+
+    <div class="usecase-card reveal zoom" style="transition-delay:.28s">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80" alt="Fashion" />
+      <div class="usecase-overlay">
+        <span class="usecase-tag">Fashion</span>
+        <h4>Clothing & Apparel</h4>
+        <p>Showcase outfits on pure or gradient backgrounds instantly</p>
+      </div>
+    </div>
+
+    <div class="usecase-card reveal zoom" style="transition-delay:.35s">
+      <img src="https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=400&h=300&fit=crop&q=80" alt="Real Estate" />
+      <div class="usecase-overlay">
+        <span class="usecase-tag">Real Estate</span>
+        <h4>Property Listings</h4>
+        <p>Replace dull skies and backgrounds with stunning visuals</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 — TESTIMONIALS
+══════════════════════════════════════════ -->
+<section class="testimonials-bg">
+  <h2 class="section-title reveal">Loved By <span>Thousands</span></h2>
+  <p style="text-align:center;color:rgba(255,255,255,0.7);font-size:14px;max-width:420px;margin:-20px auto 36px;line-height:1.7;" class="reveal">Real reviews from real users who trust our AI tools every day.</p>
+  <div class="testi-grid">
+
+    <div class="testi-card reveal" style="transition-delay:.0s">
+      <div class="testi-stars">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <p class="testi-text">"This tool completely changed how I handle product photography for my Shopify store. Background removal used to take me hours — now it's done in seconds with perfect results."</p>
+      <div class="testi-author">
+        <img class="testi-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&q=80" alt="Sarah" />
+        <div>
+          <div class="testi-name">Sarah Mitchell</div>
+          <div class="testi-role">E-Commerce Store Owner</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card reveal" style="transition-delay:.1s">
+      <div class="testi-stars">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <p class="testi-text">"As a freelance photographer, I was skeptical about AI tools — but this one genuinely impressed me. The edge detection is super clean, especially on hair and fine details."</p>
+      <div class="testi-author">
+        <img class="testi-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&q=80" alt="James" />
+        <div>
+          <div class="testi-name">James Okafor</div>
+          <div class="testi-role">Freelance Photographer</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card reveal" style="transition-delay:.2s">
+      <div class="testi-stars">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <p class="testi-text">"We use this daily for our fashion brand's Instagram. The background changer is a game-changer — we can match our seasonal color palette in minutes. Saves us so much on studio costs!"</p>
+      <div class="testi-author">
+        <img class="testi-avatar" src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&q=80" alt="Priya" />
+        <div>
+          <div class="testi-name">Priya Sharma</div>
+          <div class="testi-role">Fashion Brand Manager</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Rating summary bar -->
+  <div style="max-width:900px;margin:36px auto 0;display:flex;gap:32px;flex-wrap:wrap;justify-content:center;" class="reveal">
+    <div style="text-align:center;">
+      <div style="font-family:'Sora',sans-serif;font-size:42px;font-weight:800;color:#fff;line-height:1;">4.9</div>
+      <div style="display:flex;gap:3px;justify-content:center;margin:6px 0;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);">Average Rating</div>
+    </div>
+    <div style="width:1px;background:rgba(255,255,255,0.15);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Sora',sans-serif;font-size:42px;font-weight:800;color:#fff;line-height:1;">12K+</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:12px;">Verified Reviews</div>
+    </div>
+    <div style="width:1px;background:rgba(255,255,255,0.15);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Sora',sans-serif;font-size:42px;font-weight:800;color:#fff;line-height:1;">98%</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:12px;">Would Recommend</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-bg">
+  <h2 class="section-title">Frequently Asked <span>Questions</span></h2>
+  <div class="faq-list">
+    <div class="faq-item open">
+      <button class="faq-q">
+        Is this tool really free?
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-a">Yes! Our basic background removal and changing features are completely free to use. No credit card or signup required.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">
+        What image formats are supported?
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-a">We support JPG, PNG, WEBP, and BMP formats. Output is always provided as high-quality PNG with transparency.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">
+        How does the AI remove backgrounds?
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-a">Our AI uses advanced deep learning models to detect and separate subjects from their backgrounds with pixel-perfect accuracy.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">
+        Are my images stored anywhere?
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-a">Your images are processed securely and deleted automatically after a short period. We never share your images with third parties.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">
+        Can I use this on mobile?
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-a">Absolutely! Our tool is fully responsive and works great on mobile browsers. No app download needed.</div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- FOOTER -->
+<hr class="section-divider">
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        AI Image Tools
+      </a>
+      <p>Free AI-powered profile picture maker. Remove background, circle crop, and download for any platform in seconds.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Tools</h5>
+      <ul>
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="#">BG Remover</a></li>
+        <li><a href="#">Image Resizer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="./contact.html">Contact Us</a></li>
+        <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="./terms.html">Terms of Use</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="./contact.html">Help Center</a></li>
+        <li><a href="./contact.html">Report a Bug</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">&#169; 2025 <a href="#">AI Image Tools</a>. All rights reserved. Powered by <a href="https://www.aiImageTools.com" target="_blank">Image Tools</a>.</p>
+    <span class="footer-badge">
+      <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="6"/></svg>
+      Free &amp; No Watermark
+    </span>
+  </div>
+</footer>
+
+<script>
+  // ── FAQ accordion ──
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.parentElement;
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+
+  // ── Hamburger menu ──
+  const hamburger = document.getElementById('hamburger');
+  const navMobileMenu = document.getElementById('navMobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navMobileMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!hamburger.contains(e.target) && !navMobileMenu.contains(e.target)) {
+      hamburger.classList.remove('active');
+      navMobileMenu.classList.remove('open');
+    }
+  });
+
+  // ── Scroll Reveal ──
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revealObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ── Counter animation ──
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target);
+    const duration = 2000;
+    const start = performance.now();
+    function update(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      if (target >= 1000000) el.textContent = (current / 1000000).toFixed(1) + 'M';
+      else if (target >= 1000) el.textContent = (current / 1000).toFixed(0) + 'K';
+      else el.textContent = current;
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        document.querySelectorAll('.count-up').forEach(animateCounter);
+        statsObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  const heroStats = document.querySelector('.hero-stats');
+  if (heroStats) statsObserver.observe(heroStats);
+
+  // ── Before / After Slider ──
+  (function() {
+    const container = document.getElementById('baSlider');
+    if (!container) return;
+    const before = document.getElementById('baBefore');
+    const line = document.getElementById('baLine');
+    const handle = document.getElementById('baHandle');
+    let dragging = false;
+
+    function setPos(pct) {
+      pct = Math.max(5, Math.min(95, pct));
+      before.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+      line.style.left = pct + '%';
+      handle.style.left = pct + '%';
+    }
+    function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+    function onMove(e) {
+      if (!dragging) return;
+      const rect = container.getBoundingClientRect();
+      setPos(((getX(e) - rect.left) / rect.width) * 100);
+    }
+
+    handle.addEventListener('mousedown', () => dragging = true);
+    handle.addEventListener('touchstart', () => dragging = true, { passive: true });
+    document.addEventListener('mouseup', () => dragging = false);
+    document.addEventListener('touchend', () => dragging = false);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, { passive: true });
+
+    // Auto-demo sweep on load
+    let autoDone = false;
+    function autoDemoSweep() {
+      if (autoDone) return;
+      autoDone = true;
+      let pct = 50; let dir = -1;
+      const iv = setInterval(() => {
+        pct += dir * 1.2;
+        setPos(pct);
+        if (pct <= 20) dir = 1;
+        if (pct >= 80) { clearInterval(iv); setPos(50); }
+      }, 16);
+    }
+    const baObs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) { autoDemoSweep(); baObs.disconnect(); }
+    }, { threshold: 0.5 });
+    baObs.observe(container);
+    setPos(50);
+  })();
+
+  // ── Background Changer ──
+  let currentBg = 0;
+  const bgImgs = [
+    document.getElementById('bgImg0'),
+    document.getElementById('bgImg1'),
+    document.getElementById('bgImg2'),
+    document.getElementById('bgImg3')
+  ].filter(Boolean);
+  const bgDots = document.querySelectorAll('.bgc-dot');
+
+  function switchBg(idx) {
+    bgImgs.forEach((img, i) => { img.style.opacity = i === idx ? '1' : '0'; });
+    bgDots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    currentBg = idx;
+  }
+
+  // Auto-rotate backgrounds every 2.5s
+  setInterval(() => {
+    switchBg((currentBg + 1) % bgImgs.length);
+  }, 2500);
+</script>
+<script type="module" src="./auth-nav.js"></script>
+</body>
+</html>

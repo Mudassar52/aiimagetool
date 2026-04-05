@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Repeater — Free Online Text Repeat Tool</title>
+<script type="module" src="./auth-nav.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:#2563eb; --blue-bright:#3b82f6; --blue-dark:#1d4ed8;
+    --blue-glow:rgba(37,99,235,0.35); --bg:#f8faff; --surface:#ffffff;
+    --border:#e5e9f5; --text:#1a1f2e; --muted:#7a8aaa;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse 70% 50% at 20% 20%,rgba(37,99,235,0.15) 0%,transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 80%,rgba(29,78,216,0.10) 0%,transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%,rgba(59,130,246,0.05) 0%,transparent 70%);
+    pointer-events:none;
+  }
+
+  /* NAV */
+  nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px; background:#fff; border-bottom:1px solid #e5e9f5;
+    box-shadow:0 1px 12px rgba(59,126,248,0.07); position:relative; z-index:100;
+  }
+  .nav-logo { display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; color:#1a1f2e; text-decoration:none; }
+  .nav-logo-icon { width:32px; height:32px; background:#3b7ef8; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+  .nav-links { display:flex; gap:22px; list-style:none; align-items:center; }
+  .nav-links a { text-decoration:none; color:#6b7280; font-size:14px; font-weight:500; transition:color .2s; }
+  .nav-links a:hover { color:#3b7ef8; }
+  .nav-right { display:flex; align-items:center; gap:14px; }
+  #nav-auth-area { display:flex; align-items:center; }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:4px; }
+  .hamburger span { width:22px; height:2px; background:#1a1f2e; border-radius:2px; transition:transform .3s,opacity .3s; display:block; }
+  .hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity:0; }
+  .hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  .nav-mobile-menu { display:none; flex-direction:column; position:absolute; top:100%; left:0; right:0; background:#fff; border-bottom:1px solid #e5e9f5; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:200; padding:8px 0 14px; }
+  .nav-mobile-menu.open { display:flex; }
+  .nav-mobile-menu .nav-links-mobile { list-style:none; display:flex; flex-direction:column; }
+  .nav-mobile-menu .nav-links-mobile a { display:block; padding:11px 24px; font-size:14px; font-weight:500; color:#6b7280; text-decoration:none; }
+  .nav-mobile-menu .nav-links-mobile a:hover { color:#3b7ef8; background:#f8faff; }
+  .nav-mobile-menu #nav-auth-mobile { display:flex; gap:10px; padding:10px 24px 0; border-top:1px solid #e5e9f5; margin-top:4px; }
+  @media(max-width:700px) { .nav-links { display:none; } #nav-auth-area { display:none; } .hamburger { display:flex; } }
+
+  /* HERO */
+  .hero-text{text-align:center;padding:52px 24px 36px;position:relative;z-index:1;}
+  .hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.2);color:#93c5fd;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:.5px;text-transform:uppercase;}
+  .hero-text h1{font-family:'Sora',sans-serif;font-size:clamp(28px,5.5vw,52px);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#1a1f2e 0%,#2563eb 50%,#3b82f6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero-text p{color:var(--muted);font-size:15px;max-width:480px;margin:0 auto;line-height:1.75;}
+  .format-flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:24px;}
+  .fmt-badge{background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:6px 14px;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;box-shadow:0 2px 8px rgba(37,99,235,0.06);}
+  .fmt-arrow{color:var(--blue-bright);font-size:18px;font-weight:700;}
+
+  /* TOOL WRAPPER */
+  .tool-wrapper{max-width:1080px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1;}
+
+  /* ERROR BANNER */
+  #errorBanner{display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:13px 16px;margin-bottom:16px;color:#fca5a5;font-size:13.5px;align-items:flex-start;gap:10px;}
+  #errorBanner.show{display:flex;}
+  #errorBanner svg{width:16px;height:16px;stroke:#f87171;fill:none;stroke-width:2;flex-shrink:0;margin-top:1px;}
+
+  /* FEATURES STRIP */
+  .features-strip{display:flex;gap:0;justify-content:center;flex-wrap:wrap;max-width:760px;margin:32px auto 0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;}
+  .feat-item{flex:1;min-width:130px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 16px;border-right:1px solid var(--border);font-size:12.5px;font-weight:500;color:var(--muted);}
+  .feat-item:last-child{border-right:none;}
+  .feat-item svg{width:14px;height:14px;stroke:var(--blue-bright);fill:none;stroke-width:2;flex-shrink:0;}
+  @media(max-width:580px){.features-strip{flex-direction:column;border-radius:12px;}.feat-item{border-right:none;border-bottom:1px solid var(--border);}.feat-item:last-child{border-bottom:none;}}
+
+  /* TWO-COL LAYOUT */
+  .tool-cols{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start;margin-top:32px;}
+  @media(max-width:860px){.tool-cols{grid-template-columns:1fr;}}
+
+  /* SETTINGS PANEL */
+  .settings-panel{background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:0;}
+  .panel-section{padding:18px 0;border-bottom:1px solid var(--border);}
+  .panel-section:first-child{padding-top:0;}
+  .panel-section:last-child{border-bottom:none;padding-bottom:0;}
+  .panel-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+  .panel-title svg{width:14px;height:14px;stroke:var(--blue);fill:none;stroke-width:2;}
+
+  .setting-group{margin-bottom:14px;}
+  .setting-group:last-child{margin-bottom:0;}
+  .setting-label{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px;}
+  .setting-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);background:#fff;transition:border-color .2s;}
+  .setting-input:focus{outline:none;border-color:var(--blue-bright);}
+  .setting-select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);background:#fff;cursor:pointer;transition:border-color .2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+  .setting-select:focus{outline:none;border-color:var(--blue-bright);}
+  .slider-row{display:flex;align-items:center;gap:10px;}
+  .slider-row input[type=range]{flex:1;height:4px;border-radius:4px;accent-color:var(--blue-bright);}
+  .slider-val{font-family:'Sora',sans-serif;font-size:12px;font-weight:800;color:var(--blue);background:rgba(37,99,235,0.08);padding:2px 8px;border-radius:6px;min-width:40px;text-align:center;}
+
+  /* Separator Tabs */
+  .sep-tabs{display:flex;background:#f1f5fb;border-radius:10px;padding:3px;gap:3px;flex-wrap:wrap;}
+  .sep-tab{flex:1;min-width:fit-content;padding:6px 8px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;color:var(--muted);background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .sep-tab.active{background:#fff;color:var(--blue);box-shadow:0 1px 6px rgba(37,99,235,0.12);}
+
+  /* Apply btn */
+  .btn-apply{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,var(--blue),var(--blue-bright));color:white;border:none;padding:13px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;box-shadow:0 4px 18px var(--blue-glow);font-family:'DM Sans',sans-serif;margin-top:4px;}
+  .btn-apply:hover{opacity:.9;transform:translateY(-1px);}
+  .btn-apply svg{width:15px;height:15px;stroke:white;fill:none;stroke-width:2.2;}
+
+  /* RIGHT PANEL */
+  .right-panel{display:flex;flex-direction:column;gap:16px;}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:500px){.stats-row{grid-template-columns:1fr 1fr;}}
+  .stat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
+  .stat-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px;}
+  .stat-value{font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:var(--text);}
+  .stat-value.green{color:var(--success);}
+  .stat-value.blue{color:var(--blue);}
+
+  /* TOOLBAR */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .toolbar-left{display:flex;align-items:center;gap:10px;}
+  .toolbar h3{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--text);}
+  .count-badge{background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.2);color:var(--blue);font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;font-family:'Sora',sans-serif;}
+  .toolbar-right{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn-ghost{display:flex;align-items:center;gap:7px;background:#fff;border:1.5px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+  .btn-ghost:hover{border-color:var(--blue-bright);color:var(--blue);}
+  .btn-ghost svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+  .btn-green{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:8px 18px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;font-family:'DM Sans',sans-serif;box-shadow:0 3px 12px rgba(16,185,129,0.3);}
+  .btn-green:hover{opacity:.9;transform:translateY(-1px);}
+  .btn-green svg{width:13px;height:13px;stroke:white;fill:none;stroke-width:2;}
+
+  /* OUTPUT BOX */
+  .output-wrap{background:#fff;border:1.5px solid var(--border);border-radius:16px;overflow:hidden;}
+  .output-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafbff;}
+  .output-header-left{display:flex;align-items:center;gap:8px;}
+  .output-header span{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+  .output-dot{width:8px;height:8px;border-radius:50%;background:var(--success);}
+  #outputBox{width:100%;min-height:300px;max-height:460px;padding:18px;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.8;color:var(--text);background:#fff;resize:vertical;overflow-y:auto;}
+  .output-placeholder{color:var(--muted);font-size:13px;font-style:italic;padding:40px;text-align:center;}
+
+  /* COPY TOAST */
+  .toast{position:fixed;bottom:28px;right:28px;background:#1a1f2e;color:#fff;font-size:13px;font-weight:600;padding:12px 22px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.2);z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  /* SECTIONS */
+  .section-wrapper{max-width:1080px;margin:0 auto;padding:70px 24px;position:relative;z-index:1;}
+  .section-label{display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.2);color:#93c5fd;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;margin-bottom:14px;letter-spacing:.6px;text-transform:uppercase;}
+  .section-title{font-family:'Sora',sans-serif;font-size:clamp(22px,3.5vw,34px);font-weight:800;color:var(--text);margin-bottom:10px;line-height:1.2;}
+  .section-sub{color:var(--muted);font-size:14.5px;line-height:1.75;max-width:520px;margin-bottom:44px;}
+  .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  @media(max-width:860px){.steps-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:500px){.steps-grid{grid-template-columns:1fr;}}
+  .step-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:26px 22px;transition:box-shadow .25s,transform .25s;}
+  .step-card:hover{box-shadow:0 8px 36px rgba(37,99,235,0.10);transform:translateY(-3px);}
+  .step-number{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--blue),var(--blue-bright));color:#fff;font-family:'Sora',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 4px 16px var(--blue-glow);}
+  .step-card h4{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;}
+  .step-card p{color:var(--muted);font-size:12.5px;line-height:1.7;}
+  .use-cases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:700px){.use-cases-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:420px){.use-cases-grid{grid-template-columns:1fr;}}
+  .use-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px 20px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .25s,transform .25s;}
+  .use-card:hover{box-shadow:0 6px 28px rgba(37,99,235,0.09);transform:translateY(-3px);}
+  .use-icon{width:46px;height:46px;border-radius:13px;background:rgba(37,99,235,0.09);border:1px solid rgba(37,99,235,0.15);display:flex;align-items:center;justify-content:center;}
+  .use-icon svg{width:22px;height:22px;stroke:var(--blue-bright);fill:none;stroke-width:1.8;}
+  .use-card h4{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+  .use-card p{color:var(--muted);font-size:12.5px;line-height:1.65;}
+  .faq-list{display:flex;flex-direction:column;gap:12px;max-width:720px;margin:0 auto;}
+  .faq-item{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:box-shadow .2s;}
+  .faq-item.open{box-shadow:0 4px 24px rgba(37,99,235,0.08);border-color:rgba(37,99,235,0.25);}
+  .faq-question{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--text);gap:14px;user-select:none;}
+  .faq-question:hover{color:var(--blue);}
+  .faq-chevron{width:20px;height:20px;flex-shrink:0;stroke:var(--muted);fill:none;stroke-width:2;transition:transform .3s;}
+  .faq-item.open .faq-chevron{transform:rotate(180deg);stroke:var(--blue);}
+  .faq-answer{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;padding:0 22px;color:var(--muted);font-size:13.5px;line-height:1.75;}
+  .faq-item.open .faq-answer{max-height:220px;padding:0 22px 18px;}
+
+  /* ABOUT SECTION */
+  .about-container{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
+  @media(max-width:768px){.about-container{grid-template-columns:1fr;}}
+  .about-text .about-desc{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:20px;}
+  .about-features{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;color:var(--text);font-weight:600;}
+  .about-features div{background:#fff;border:1px solid var(--border);padding:10px 12px;border-radius:10px;}
+  .about-visual{background:#fff;border:1px solid var(--border);border-radius:18px;padding:32px;display:flex;flex-direction:column;gap:14px;}
+  .about-demo-line{height:36px;border-radius:8px;background:linear-gradient(90deg,rgba(37,99,235,0.12),rgba(59,130,246,0.06));border:1px solid rgba(37,99,235,0.15);display:flex;align-items:center;padding:0 14px;font-size:12px;color:var(--blue);font-weight:600;gap:10px;}
+  .about-demo-line span{background:rgba(37,99,235,0.10);padding:2px 8px;border-radius:5px;font-family:'Sora',sans-serif;font-size:10px;font-weight:800;}
+
+  /* SECTION DIVIDER */
+  .section-divider{border:none;border-top:1px solid var(--border);margin:0 24px;}
+
+  /* FOOTER */
+  .site-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  .footer-top {
+    max-width: 1020px; margin: 0 auto;
+    padding: 52px 24px 36px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 780px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-brand .nav-logo {
+    display: inline-flex; margin-bottom: 14px;
+  }
+  .footer-brand p {
+    font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 240px; margin-bottom: 20px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .footer-social-btn:hover {
+    background: rgba(37,99,235,0.1); border-color: var(--blue-bright); color: var(--blue);
+  }
+  .footer-social-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .footer-col h5 {
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text); letter-spacing: .6px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--blue); }
+  .footer-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .footer-bottom {
+    max-width: 1020px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .footer-copy {
+    font-size: 12.5px; color: var(--muted);
+  }
+  .footer-copy a { color: var(--blue); text-decoration: none; }
+  .footer-copy a:hover { text-decoration: underline; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.18);
+    color: var(--blue); font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: .4px;
+  }
+  .footer-badge svg { width: 10px; height: 10px; fill: var(--blue); stroke: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="./index.html">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Text Tools
+  </a>
+  <ul class="nav-links">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Terms of Use</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+  </ul>
+  <div class="nav-right">
+    <div id="nav-auth-area">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+        <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile-menu" id="navMobileMenu">
+    <ul class="nav-links-mobile">
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./dashboard.html">Dashboard</a></li>
+      <li><a href="./contact.html">Contact</a></li>
+      <li><a href="./terms.html">Terms of Use</a></li>
+      <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    </ul>
+    <div id="nav-auth-mobile">
+      <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+      <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-text">
+  <div class="hero-pill">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#93c5fd" stroke-width="2.5"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+    Repeat · Separate · Format — 100% Free
+  </div>
+  <h1>Repeat Text Instantly<br>Any Way You Want</h1>
+  <p>Type your text, choose how many times to repeat, pick a separator — get your result in one click. Fast, free, no sign-up needed.</p>
+  <div class="format-flow">
+    <span class="fmt-badge">Custom Separator</span>
+    <span class="fmt-arrow">·</span>
+    <span class="fmt-badge">Prefix & Suffix</span>
+    <span class="fmt-arrow">·</span>
+    <span class="fmt-badge">Numbering</span>
+    <span class="fmt-arrow">→</span>
+    <span class="fmt-badge" style="background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,0.3);color:var(--blue);">Ready to Copy ✓</span>
+  </div>
+</div>
+
+<!-- TOOL -->
+<div class="tool-wrapper">
+
+  <div id="errorBanner">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="errorText">Something went wrong.</span>
+  </div>
+
+  <!-- FEATURES STRIP -->
+  <div class="features-strip">
+    <div class="feat-item"><svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>Any Text</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Custom Separator</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Instant Result</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>One-Click Copy</div>
+    <div class="feat-item"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Free — No Limit</div>
+  </div>
+
+  <!-- TWO-COL -->
+  <div class="tool-cols">
+
+    <!-- LEFT: SETTINGS PANEL -->
+    <div class="settings-panel">
+
+      <!-- Input Text -->
+      <div class="panel-section">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          Input Text
+        </div>
+        <div class="setting-group">
+          <label class="setting-label">Your Text</label>
+          <textarea class="setting-input" id="inputText" rows="4" placeholder="Type or paste text here…" oninput="liveGenerate()" style="resize:vertical;line-height:1.6;"></textarea>
+        </div>
+      </div>
+
+      <!-- Repeat Count -->
+      <div class="panel-section">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+          Repeat Count
+        </div>
+        <div class="slider-row">
+          <input type="range" id="repeatCount" min="1" max="100" value="5" oninput="updateSlider('repeatCount','repeatCountVal','×');liveGenerate()">
+          <span class="slider-val" id="repeatCountVal">5×</span>
+        </div>
+        <div class="setting-group" style="margin-top:12px;">
+          <label class="setting-label">Or type exact number</label>
+          <input type="number" class="setting-input" id="repeatExact" min="1" max="9999" value="5" oninput="syncExact()" placeholder="e.g. 50">
+        </div>
+      </div>
+
+      <!-- Separator -->
+      <div class="panel-section">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          Separator
+        </div>
+        <div class="sep-tabs" id="sepTabs">
+          <button class="sep-tab active" data-sep="newline" onclick="setSep(this)">↵ Newline</button>
+          <button class="sep-tab" data-sep="space" onclick="setSep(this)">· Space</button>
+          <button class="sep-tab" data-sep="comma" onclick="setSep(this)">, Comma</button>
+          <button class="sep-tab" data-sep="pipe" onclick="setSep(this)">| Pipe</button>
+          <button class="sep-tab" data-sep="custom" onclick="setSep(this)">✏ Custom</button>
+        </div>
+        <div class="setting-group" id="customSepWrap" style="margin-top:10px;display:none;">
+          <label class="setting-label">Custom separator</label>
+          <input type="text" class="setting-input" id="customSep" placeholder="e.g.  ---  or  &&" oninput="liveGenerate()" value=" | ">
+        </div>
+      </div>
+
+      <!-- Prefix & Suffix -->
+      <div class="panel-section">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          Prefix & Suffix
+        </div>
+        <div class="setting-group">
+          <label class="setting-label">Prefix (before each repeat)</label>
+          <input type="text" class="setting-input" id="prefixText" placeholder='e.g. "• " or "- "' oninput="liveGenerate()">
+        </div>
+        <div class="setting-group">
+          <label class="setting-label">Suffix (after each repeat)</label>
+          <input type="text" class="setting-input" id="suffixText" placeholder='e.g. "." or "!"' oninput="liveGenerate()">
+        </div>
+      </div>
+
+      <!-- Numbering -->
+      <div class="panel-section">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+          Numbering
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;">
+          <input type="checkbox" id="addNumbers" style="accent-color:var(--blue);width:15px;height:15px;" onchange="liveGenerate()">
+          Add line numbers (1. 2. 3. …)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin-top:10px;">
+          <input type="checkbox" id="trimOutput" style="accent-color:var(--blue);width:15px;height:15px;" onchange="liveGenerate()" checked>
+          Trim extra spaces from input
+        </label>
+      </div>
+
+      <!-- Generate -->
+      <div class="panel-section">
+        <button class="btn-apply" onclick="liveGenerate()">
+          <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/></svg>
+          Generate Repeated Text
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Repeats</div>
+          <div class="stat-value blue" id="statRepeats">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Characters</div>
+          <div class="stat-value" id="statChars">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Words</div>
+          <div class="stat-value" id="statWords">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Lines</div>
+          <div class="stat-value green" id="statLines">0</div>
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <h3>Output</h3>
+          <span class="count-badge" id="outputBadge">0 chars</span>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn-ghost" onclick="clearAll()">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            Clear
+          </button>
+          <button class="btn-ghost" onclick="downloadTxt()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download .txt
+          </button>
+          <button class="btn-green" onclick="copyOutput()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy All
+          </button>
+        </div>
+      </div>
+
+      <!-- OUTPUT BOX -->
+      <div class="output-wrap">
+        <div class="output-header">
+          <div class="output-header-left">
+            <div class="output-dot" id="outputDot" style="background:var(--border);"></div>
+            <span>Generated Output</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted);">Editable</span>
+        </div>
+        <textarea id="outputBox" placeholder="Your repeated text will appear here…"></textarea>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Copied to clipboard!</div>
+
+<!-- HOW IT WORKS -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div class="section-label">
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    How It Works
+  </div>
+  <div class="section-title">Done in 3 Simple Steps</div>
+  <div class="section-sub">No sign-up, no software — just paste, set, and copy.</div>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h4>Type Your Text</h4>
+      <p>Paste or type any word, sentence, or paragraph into the input box on the left.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h4>Set Repeat Count</h4>
+      <p>Use the slider or type an exact number — up to 9,999 repetitions supported.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h4>Choose Format</h4>
+      <p>Pick a separator, add a prefix/suffix, or enable line numbering — all optional.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">4</div>
+      <h4>Copy or Download</h4>
+      <p>One click to copy everything to clipboard, or download as a plain .txt file.</p>
+    </div>
+  </div>
+</div>
+
+<!-- USE CASES -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div class="section-label">Use Cases</div>
+  <div class="section-title">Who Uses This Tool?</div>
+  <div class="section-sub">From developers to content creators — everyone needs to repeat text sometimes.</div>
+  <div class="use-cases-grid">
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      <h4>Developers & Testers</h4>
+      <p>Generate dummy/placeholder text, fill test data, or quickly create repeated SQL values.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <h4>Social Media Managers</h4>
+      <p>Repeat hashtags, phrases, or CTA lines across posts without retyping every time.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div>
+      <h4>Writers & Editors</h4>
+      <p>Create separator lines, repeat formatting markers, or fill templates with repeated content.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+      <h4>Data Entry</h4>
+      <p>Repeat values for spreadsheets, CSV files, or form fields without manual copy-pasting.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
+      <h4>Students</h4>
+      <p>Practice handwriting, repeat vocabulary words, or create study list templates fast.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+      <h4>Time-Savers</h4>
+      <p>Anyone who hates manually pressing Ctrl+V fifty times — this tool is made for you.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div class="about-container">
+    <div class="about-text">
+      <div class="section-label">About This Tool</div>
+      <div class="section-title">Simple, Fast & Private</div>
+      <p class="about-desc">Our Text Repeater Tool runs 100% in your browser. No text is ever sent to a server — everything happens locally on your device. Paste sensitive content without worry.</p>
+      <p class="about-desc">It's built for speed: results appear instantly as you type, with no lag even at thousands of repetitions.</p>
+      <div class="about-features">
+        <div>✓ No server upload</div>
+        <div>✓ Instant preview</div>
+        <div>✓ Custom separator</div>
+        <div>✓ Prefix & suffix</div>
+        <div>✓ Line numbering</div>
+        <div>✓ .txt download</div>
+      </div>
+    </div>
+    <div class="about-visual">
+      <div style="font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">Preview</div>
+      <div class="about-demo-line"><span>1.</span> Hello World</div>
+      <div class="about-demo-line"><span>2.</span> Hello World</div>
+      <div class="about-demo-line"><span>3.</span> Hello World</div>
+      <div class="about-demo-line" style="opacity:.6;"><span>4.</span> Hello World</div>
+      <div class="about-demo-line" style="opacity:.35;"><span>5.</span> Hello World</div>
+      <div style="text-align:center;margin-top:6px;font-size:11px;color:var(--muted);">…repeated as many times as you need</div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;margin-bottom:40px;">
+    <div class="section-label" style="display:inline-flex;">FAQ</div>
+    <div class="section-title">Frequently Asked Questions</div>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        How many times can I repeat text?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">You can type any number into the "exact number" field — up to 9,999 repetitions. For very large outputs, we recommend downloading as a .txt file instead of copying.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Is my text saved anywhere?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">No. Everything runs in your browser only. No data is sent to our servers. You can even use this tool offline once the page is loaded.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Can I use a custom separator between repetitions?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Yes! Choose from Newline, Space, Comma, or Pipe — or select "Custom" and type anything you want as the separator between each repetition.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Does it work with multi-line text?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Absolutely. You can paste paragraphs or multi-line content into the input. The entire block will be treated as one unit and repeated the specified number of times.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        What does prefix and suffix do?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">A prefix is added before every repetition, and a suffix is added after. For example, prefix "• " turns each repeat into a bullet point. Suffix "." adds a period at the end of each.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<hr class="section-divider">
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        AI Image Tools
+      </a>
+      <p>Free AI-powered profile picture maker. Remove background, circle crop, and download for any platform in seconds.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Tools</h5>
+      <ul>
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="#">BG Remover</a></li>
+        <li><a href="#">Image Resizer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="./contact.html">Contact Us</a></li>
+        <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="./terms.html">Terms of Use</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="./contact.html">Help Center</a></li>
+        <li><a href="./contact.html">Report a Bug</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">&#169; 2025 <a href="#">AI Image Tools</a>. All rights reserved. Powered by <a href="https://www.aiImageTools.com" target="_blank">Image Tools</a>.</p>
+    <span class="footer-badge">
+      <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="6"/></svg>
+      Free &amp; No Watermark
+    </span>
+  </div>
+</footer>
+
+
+<script>
+/* ── STATE ── */
+let activeSep = 'newline';
+
+/* ── SEPARATOR ── */
+function setSep(btn) {
+  document.querySelectorAll('.sep-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeSep = btn.dataset.sep;
+  document.getElementById('customSepWrap').style.display = activeSep === 'custom' ? '' : 'none';
+  liveGenerate();
+}
+
+function getSeparator() {
+  switch (activeSep) {
+    case 'newline': return '\n';
+    case 'space':   return ' ';
+    case 'comma':   return ', ';
+    case 'pipe':    return ' | ';
+    case 'custom':  return document.getElementById('customSep').value;
+    default:        return '\n';
+  }
+}
+
+/* ── SYNC SLIDER ↔ NUMBER INPUT ── */
+function updateSlider(sliderId, valId, unit) {
+  const v = document.getElementById(sliderId).value;
+  document.getElementById(valId).textContent = v + unit;
+  document.getElementById('repeatExact').value = v;
+}
+
+function syncExact() {
+  let v = parseInt(document.getElementById('repeatExact').value) || 1;
+  v = Math.max(1, Math.min(9999, v));
+  document.getElementById('repeatExact').value = v;
+  const slider = document.getElementById('repeatCount');
+  slider.value = Math.min(v, 100);
+  document.getElementById('repeatCountVal').textContent = v + '×';
+  liveGenerate();
+}
+
+/* ── GENERATE ── */
+function liveGenerate() {
+  const rawText = document.getElementById('inputText').value;
+  const trim    = document.getElementById('trimOutput').checked;
+  const text    = trim ? rawText.trim() : rawText;
+
+  if (!text) {
+    setOutput('');
+    updateStats('', 0);
+    return;
+  }
+
+  const count   = parseInt(document.getElementById('repeatExact').value) || 5;
+  const sep     = getSeparator();
+  const prefix  = document.getElementById('prefixText').value;
+  const suffix  = document.getElementById('suffixText').value;
+  const numbered = document.getElementById('addNumbers').checked;
+
+  const parts = [];
+  for (let i = 1; i <= count; i++) {
+    const num = numbered ? i + '. ' : '';
+    parts.push(num + prefix + text + suffix);
+  }
+
+  const result = parts.join(sep);
+  setOutput(result);
+  updateStats(result, count);
+}
+
+function setOutput(text) {
+  const box = document.getElementById('outputBox');
+  box.value = text;
+  const dot = document.getElementById('outputDot');
+  dot.style.background = text ? 'var(--success)' : 'var(--border)';
+}
+
+function updateStats(text, repeats) {
+  const chars = text.length;
+  const words = text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+  const lines = text ? text.split('\n').length : 0;
+  document.getElementById('statRepeats').textContent = repeats;
+  document.getElementById('statChars').textContent   = chars.toLocaleString();
+  document.getElementById('statWords').textContent   = words.toLocaleString();
+  document.getElementById('statLines').textContent   = lines.toLocaleString();
+  document.getElementById('outputBadge').textContent = chars.toLocaleString() + ' chars';
+}
+
+/* ── COPY ── */
+function copyOutput() {
+  const text = document.getElementById('outputBox').value;
+  if (!text) { showError('Nothing to copy yet. Generate some text first.'); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  });
+}
+
+/* ── DOWNLOAD ── */
+function downloadTxt() {
+  const text = document.getElementById('outputBox').value;
+  if (!text) { showError('Nothing to download yet.'); return; }
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'repeated-text.txt';
+  a.click();
+}
+
+/* ── CLEAR ── */
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('repeatExact').value = 5;
+  document.getElementById('repeatCount').value = 5;
+  document.getElementById('repeatCountVal').textContent = '5×';
+  document.getElementById('prefixText').value = '';
+  document.getElementById('suffixText').value = '';
+  document.getElementById('addNumbers').checked = false;
+  setOutput('');
+  updateStats('', 0);
+}
+
+/* ── ERROR ── */
+function showError(msg) {
+  const b = document.getElementById('errorBanner');
+  document.getElementById('errorText').textContent = msg;
+  b.classList.add('show');
+  setTimeout(() => b.classList.remove('show'), 5000);
+}
+
+/* ── FAQ ── */
+function toggleFaq(el) {
+  const item = el.parentElement, isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ── HAMBURGER ── */
+const hamburger = document.getElementById('hamburger');
+const navMobileMenu = document.getElementById('navMobileMenu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  navMobileMenu.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!hamburger.contains(e.target) && !navMobileMenu.contains(e.target)) {
+    hamburger.classList.remove('active');
+    navMobileMenu.classList.remove('open');
+  }
+});
+
+/* ── INIT ── */
+liveGenerate();
+</script>
+</body>
+</html>

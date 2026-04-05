@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMG Converter — Free Online Image Format Converter</title>
+<script type="module" src="./auth-nav.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root {
+    --blue: #2563eb;
+    --blue-bright: #3b82f6;
+    --blue-dark: #1d4ed8;
+    --blue-glow: rgba(37,99,235,0.35);
+    --bg: #f8faff;
+    --surface: #ffffff;
+    --border: #e5e9f5;
+    --text: #1a1f2e;
+    --muted: #7a8aaa;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 70% 50% at 20% 20%, rgba(37,99,235,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(29,78,216,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 24px; background:#fff; border-bottom:1px solid #e5e9f5;
+  box-shadow:0 1px 12px rgba(59,126,248,0.07); position:relative; z-index:100;
+}
+.nav-logo { display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; color:#1a1f2e; text-decoration:none; }
+.nav-logo-icon { width:32px; height:32px; background:#3b7ef8; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.nav-logo-icon svg { width:18px; height:18px; fill:none; stroke:white; stroke-width:2; }
+.nav-links { display:flex; gap:22px; list-style:none; align-items:center; }
+.nav-links a { text-decoration:none; color:#6b7280; font-size:14px; font-weight:500; transition:color .2s; }
+.nav-links a:hover { color:#3b7ef8; }
+.nav-right { display:flex; align-items:center; gap:14px; }
+#nav-auth-area { display:flex; align-items:center; }
+.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:4px; }
+.hamburger span { width:22px; height:2px; background:#1a1f2e; border-radius:2px; transition:transform .3s,opacity .3s; display:block; }
+.hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+.hamburger.active span:nth-child(2) { opacity:0; }
+.hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+.nav-mobile-menu { display:none; flex-direction:column; position:absolute; top:100%; left:0; right:0; background:#fff; border-bottom:1px solid #e5e9f5; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:200; padding:8px 0 14px; }
+.nav-mobile-menu.open { display:flex; }
+.nav-mobile-menu .nav-links-mobile { list-style:none; display:flex; flex-direction:column; }
+.nav-mobile-menu .nav-links-mobile a { display:block; padding:11px 24px; font-size:14px; font-weight:500; color:#6b7280; text-decoration:none; }
+.nav-mobile-menu .nav-links-mobile a:hover { color:#3b7ef8; background:#f8faff; }
+.nav-mobile-menu #nav-auth-mobile { display:flex; gap:10px; padding:10px 24px 0; border-top:1px solid #e5e9f5; margin-top:4px; }
+@media(max-width:700px) { .nav-links { display:none; } #nav-auth-area { display:none; } .hamburger { display:flex; } }
+
+
+  /* ─── HERO ─── */
+  .hero-text { text-align:center; padding:52px 24px 36px; position:relative; z-index:1; }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:#93c5fd; font-size:12px; font-weight:600;
+    padding:5px 14px; border-radius:20px; margin-bottom:20px;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .hero-text h1 {
+    font-family:'Sora',sans-serif; font-size:clamp(28px,5.5vw,52px);
+    font-weight:900; line-height:1.1; margin-bottom:16px;
+    background:linear-gradient(135deg,#1a1f2e 0%,#2563eb 50%,#3b82f6 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-text p { color:var(--muted); font-size:15px; max-width:480px; margin:0 auto; line-height:1.75; }
+
+  /* ─── FORMAT BADGES ─── */
+  .format-flow {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    flex-wrap:wrap; margin-top:24px;
+  }
+  .fmt-badge {
+    background:#fff; border:1.5px solid var(--border);
+    border-radius:8px; padding:6px 14px;
+    font-family:'Sora',sans-serif; font-size:12px; font-weight:700;
+    color:var(--text); letter-spacing:.5px;
+    box-shadow:0 2px 8px rgba(37,99,235,0.06);
+  }
+  .fmt-arrow { color:var(--blue-bright); font-size:18px; font-weight:700; }
+
+  /* ─── TOOL WRAPPER ─── */
+  .tool-wrapper { max-width:1000px; margin:0 auto; padding:0 24px 80px; position:relative; z-index:1; }
+
+  /* ─── ERROR BANNER ─── */
+  #errorBanner {
+    display:none; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25);
+    border-radius:12px; padding:13px 16px; margin-bottom:16px;
+    color:#fca5a5; font-size:13.5px; align-items:flex-start; gap:10px;
+  }
+  #errorBanner.show { display:flex; }
+  #errorBanner svg { width:16px; height:16px; stroke:#f87171; fill:none; stroke-width:2; flex-shrink:0; margin-top:1px; }
+
+  /* ─── DROPZONE ─── */
+  #dropzone {
+    border:2px dashed var(--border); border-radius:22px;
+    background:var(--surface); padding:56px 30px;
+    text-align:center; cursor:pointer;
+    transition:border-color .25s, background .25s, transform .2s;
+    position:relative; overflow:hidden;
+  }
+  #dropzone::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 60% 50% at 50% 100%, rgba(37,99,235,0.06) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  #dropzone:hover, #dropzone.drag-over { border-color:var(--blue-bright); transform:translateY(-2px); }
+  #dropzone.drag-over { background:rgba(37,99,235,0.03); }
+  .drop-icon {
+    width:76px; height:76px; margin:0 auto 20px;
+    background:linear-gradient(135deg,rgba(37,99,235,0.14),rgba(59,130,246,0.07));
+    border:1.5px solid rgba(37,99,235,0.18); border-radius:22px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .drop-icon svg { width:34px; height:34px; stroke:var(--blue-bright); fill:none; stroke-width:1.5; }
+  #dropzone h3 { font-family:'Sora',sans-serif; font-size:20px; font-weight:700; color:var(--text); margin-bottom:10px; }
+  #dropzone p { color:var(--muted); font-size:13.5px; margin-bottom:24px; line-height:1.6; }
+  .upload-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:white; border:none; padding:12px 28px; border-radius:10px;
+    font-size:14px; font-weight:600; cursor:pointer;
+    transition:opacity .2s,transform .15s; box-shadow:0 4px 20px var(--blue-glow);
+    font-family:'DM Sans',sans-serif;
+  }
+  .upload-btn:hover { opacity:.9; transform:translateY(-1px); }
+  .upload-btn svg { width:16px; height:16px; stroke:white; fill:none; stroke-width:2; }
+  .drop-note { font-size:12px; color:var(--muted); margin-top:14px; }
+  #fileInput { display:none; }
+
+  /* ─── FEATURES STRIP ─── */
+  .features-strip {
+    display:flex; gap:0; justify-content:center; flex-wrap:wrap;
+    max-width:760px; margin:32px auto 0;
+    border:1px solid var(--border); border-radius:14px;
+    overflow:hidden; background:#fff;
+  }
+  .feat-item {
+    flex:1; min-width:140px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:14px 16px; border-right:1px solid var(--border);
+    font-size:12.5px; font-weight:500; color:var(--muted);
+  }
+  .feat-item:last-child { border-right:none; }
+  .feat-item svg { width:14px; height:14px; stroke:var(--blue-bright); fill:none; stroke-width:2; flex-shrink:0; }
+  @media(max-width:580px){
+    .features-strip{flex-direction:column;border-radius:12px;}
+    .feat-item{border-right:none;border-bottom:1px solid var(--border);}
+    .feat-item:last-child{border-bottom:none;}
+  }
+
+  /* ─── CONVERTER AREA ─── */
+  #converterArea { display:none; }
+
+  /* ─── SETTINGS BAR ─── */
+  .settings-bar {
+    background:#fff; border:1px solid var(--border); border-radius:18px;
+    padding:20px 24px; margin-bottom:20px;
+    display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:16px; align-items:end;
+  }
+  @media(max-width:720px){ .settings-bar{grid-template-columns:1fr 1fr;} }
+  @media(max-width:480px){ .settings-bar{grid-template-columns:1fr;} }
+
+  .setting-group label {
+    display:block; font-size:11.5px; font-weight:700; color:var(--muted);
+    letter-spacing:.4px; text-transform:uppercase; margin-bottom:8px;
+  }
+  .setting-select {
+    width:100%; padding:9px 12px; border:1.5px solid var(--border);
+    border-radius:10px; font-family:'DM Sans',sans-serif;
+    font-size:13.5px; font-weight:600; color:var(--text);
+    background:#fff; cursor:pointer; transition:border-color .2s;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center;
+    padding-right:32px;
+  }
+  .setting-select:focus { outline:none; border-color:var(--blue-bright); }
+
+  .quality-wrap { display:flex; flex-direction:column; gap:8px; }
+  .quality-label { display:flex; justify-content:space-between; align-items:center; }
+  .quality-label span:first-child { font-size:11.5px; font-weight:700; color:var(--muted); letter-spacing:.4px; text-transform:uppercase; }
+  .quality-val {
+    font-family:'Sora',sans-serif; font-size:13px; font-weight:800;
+    color:var(--blue); background:rgba(37,99,235,0.08);
+    padding:2px 8px; border-radius:6px;
+  }
+  input[type="range"] {
+    width:100%; height:4px; border-radius:4px;
+    accent-color:var(--blue-bright); cursor:pointer;
+  }
+
+  .btn-convert-all {
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:white; border:none; padding:11px 22px; border-radius:10px;
+    font-size:13.5px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; box-shadow:0 4px 18px var(--blue-glow);
+    font-family:'DM Sans',sans-serif; white-space:nowrap;
+    height:40px;
+  }
+  .btn-convert-all:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-convert-all svg { width:15px; height:15px; stroke:white; fill:none; stroke-width:2.2; }
+
+  /* ─── TOOLBAR ─── */
+  .toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; flex-wrap:wrap; gap:12px;
+  }
+  .toolbar-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .toolbar h3 { font-family:'Sora',sans-serif; font-size:17px; font-weight:700; color:var(--text); }
+  .count-badge {
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:var(--blue); font-size:11.5px; font-weight:700;
+    padding:3px 10px; border-radius:20px; font-family:'Sora',sans-serif;
+  }
+  .toolbar-right { display:flex; gap:10px; flex-wrap:wrap; }
+
+  .btn-ghost {
+    display:flex; align-items:center; gap:7px;
+    background:#fff; border:1.5px solid var(--border);
+    color:var(--muted); padding:8px 16px; border-radius:9px;
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    transition:all .2s; font-family:'DM Sans',sans-serif;
+  }
+  .btn-ghost:hover { border-color:var(--blue-bright); color:var(--blue); }
+  .btn-ghost svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; }
+  .btn-ghost:disabled { opacity:.4; cursor:not-allowed; }
+
+  .btn-zip {
+    display:flex; align-items:center; gap:7px;
+    background:linear-gradient(135deg,#10b981,#059669);
+    color:white; border:none; padding:8px 18px; border-radius:9px;
+    font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; font-family:'DM Sans',sans-serif;
+    box-shadow:0 3px 12px rgba(16,185,129,0.3);
+  }
+  .btn-zip:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-zip:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+  .btn-zip svg { width:13px; height:13px; stroke:white; fill:none; stroke-width:2; }
+
+  /* ─── FILE LIST ─── */
+  .file-list { display:flex; flex-direction:column; gap:10px; }
+
+  .file-card {
+    background:#fff; border:1.5px solid var(--border); border-radius:16px;
+    display:grid; grid-template-columns:56px 1fr auto; gap:0; overflow:hidden;
+    transition:box-shadow .2s, border-color .2s;
+  }
+  .file-card:hover { box-shadow:0 4px 24px rgba(37,99,235,0.08); }
+  .file-card.converting { border-color:rgba(37,99,235,0.3); }
+  .file-card.done { border-color:rgba(16,185,129,0.35); }
+  .file-card.error { border-color:rgba(239,68,68,0.35); }
+
+  .file-thumb {
+    width:56px; background:#f1f5f9;
+    display:flex; align-items:center; justify-content:center;
+    border-right:1.5px solid var(--border); flex-shrink:0;
+  }
+  .file-thumb img { width:48px; height:48px; object-fit:cover; border-radius:6px; }
+  .file-thumb .fmt-icon {
+    width:36px; height:36px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Sora',sans-serif; font-size:10px; font-weight:800;
+    letter-spacing:.3px;
+  }
+
+  .file-info { padding:13px 16px; display:flex; flex-direction:column; justify-content:center; gap:5px; min-width:0; }
+  .file-name { font-size:13.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .file-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .file-size { font-size:11.5px; color:var(--muted); }
+  .file-arrow {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:11.5px; font-weight:700;
+  }
+  .fmt-from { color:var(--muted); background:#f1f5f9; padding:2px 7px; border-radius:5px; }
+  .fmt-to { color:var(--blue); background:rgba(37,99,235,0.10); padding:2px 7px; border-radius:5px; }
+  .file-status { font-size:11px; font-weight:600; }
+  .status-waiting { color:var(--muted); }
+  .status-converting { color:var(--blue); }
+  .status-done { color:var(--success); }
+  .status-error { color:var(--danger); }
+
+  /* Progress bar */
+  .file-progress { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:5px; display:none; }
+  .file-progress-bar { height:100%; border-radius:2px; width:0%; transition:width .4s; }
+  .file-card.converting .file-progress { display:block; }
+  .file-card.converting .file-progress-bar { background:var(--blue-bright); width:70%; animation:prog .6s ease forwards .1s; }
+  .file-card.done .file-progress { display:block; }
+  .file-card.done .file-progress-bar { background:var(--success); width:100%; }
+  @keyframes prog { to{width:90%;} }
+
+  .file-actions { padding:12px 14px; display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .btn-dl {
+    display:flex; align-items:center; gap:6px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:white; border:none; padding:7px 14px; border-radius:8px;
+    font-size:12px; font-weight:700; cursor:pointer;
+    transition:opacity .2s,transform .15s; font-family:'DM Sans',sans-serif;
+    box-shadow:0 2px 10px var(--blue-glow);
+  }
+  .btn-dl:hover { opacity:.9; transform:translateY(-1px); }
+  .btn-dl:disabled { opacity:.3; cursor:not-allowed; transform:none; }
+  .btn-dl svg { width:12px; height:12px; stroke:white; fill:none; stroke-width:2.5; }
+
+  .btn-remove {
+    width:30px; height:30px; border-radius:8px; border:1.5px solid var(--border);
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .2s; flex-shrink:0;
+  }
+  .btn-remove:hover { border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.05); }
+  .btn-remove svg { width:13px; height:13px; stroke:#f87171; fill:none; stroke-width:2; }
+
+  /* ─── RESIZE OPTIONS ─── */
+  .resize-row {
+    display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end;
+    margin-bottom:0;
+  }
+  @media(max-width:480px){ .resize-row{grid-template-columns:1fr;} }
+  .resize-input-wrap label { display:block; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.4px; text-transform:uppercase; margin-bottom:6px; }
+  .resize-input {
+    width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:9px;
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; color:var(--text);
+    background:#fff; transition:border-color .2s;
+  }
+  .resize-input:focus { outline:none; border-color:var(--blue-bright); }
+  .resize-input::placeholder { color:#c8d1e8; }
+  .lock-ratio {
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; color:var(--muted); cursor:pointer; white-space:nowrap;
+    padding-bottom:8px;
+  }
+  .lock-ratio input { accent-color:var(--blue); cursor:pointer; width:14px; height:14px; }
+
+  /* ─── STATS ROW ─── */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;
+  }
+  @media(max-width:640px){ .stats-row{grid-template-columns:1fr 1fr;} }
+  .stat-card {
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    padding:16px 18px;
+  }
+  .stat-label { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.4px; text-transform:uppercase; margin-bottom:6px; }
+  .stat-value { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; color:var(--text); }
+  .stat-value.green { color:var(--success); }
+  .stat-value.blue { color:var(--blue); }
+
+  /* ─── ADD MORE ─── */
+  .add-more-btn {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%; padding:16px; border:2px dashed var(--border); border-radius:14px;
+    background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif;
+    font-size:13px; font-weight:600; cursor:pointer; transition:all .2s;
+    margin-top:10px;
+  }
+  .add-more-btn:hover { border-color:var(--blue-bright); color:var(--blue); background:rgba(37,99,235,0.03); }
+  .add-more-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+
+  /* ─── SECTIONS ─── */
+  .section-divider { border:none; border-top:1px solid var(--border); margin:0 24px; }
+  .section-wrapper { max-width:1000px; margin:0 auto; padding:70px 24px; position:relative; z-index:1; }
+  .section-label {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.2);
+    color:#93c5fd; font-size:11px; font-weight:700;
+    padding:5px 14px; border-radius:20px; margin-bottom:14px;
+    letter-spacing:.6px; text-transform:uppercase;
+  }
+  .section-title { font-family:'Sora',sans-serif; font-size:clamp(22px,3.5vw,34px); font-weight:800; color:var(--text); margin-bottom:10px; line-height:1.2; }
+  .section-sub { color:var(--muted); font-size:14.5px; line-height:1.75; max-width:520px; margin-bottom:44px; }
+
+  .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  @media(max-width:860px){ .steps-grid{grid-template-columns:1fr 1fr;} }
+  @media(max-width:500px){ .steps-grid{grid-template-columns:1fr;} }
+  .step-card { background:#fff; border:1px solid var(--border); border-radius:18px; padding:26px 22px; transition:box-shadow .25s,transform .25s; }
+  .step-card:hover { box-shadow:0 8px 36px rgba(37,99,235,0.10); transform:translateY(-3px); }
+  .step-number {
+    width:38px; height:38px; border-radius:11px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-bright));
+    color:#fff; font-family:'Sora',sans-serif; font-weight:800; font-size:15px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    box-shadow:0 4px 16px var(--blue-glow);
+  }
+  .step-card h4 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); margin-bottom:8px; }
+  .step-card p { color:var(--muted); font-size:12.5px; line-height:1.7; }
+
+  .formats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+  @media(max-width:700px){ .formats-grid{grid-template-columns:repeat(3,1fr);} }
+  @media(max-width:420px){ .formats-grid{grid-template-columns:1fr 1fr;} }
+  .format-card {
+    background:#fff; border:1.5px solid var(--border); border-radius:16px; padding:22px 16px;
+    text-align:center; transition:box-shadow .25s,transform .25s,border-color .25s;
+    cursor:default;
+  }
+  .format-card:hover { box-shadow:0 6px 28px rgba(37,99,235,0.10); transform:translateY(-3px); border-color:rgba(37,99,235,0.25); }
+  .fmt-big {
+    width:52px; height:52px; border-radius:14px; margin:0 auto 14px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Sora',sans-serif; font-size:14px; font-weight:800; letter-spacing:.5px;
+  }
+  .format-card h4 { font-family:'Sora',sans-serif; font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; }
+  .format-card p { color:var(--muted); font-size:11.5px; line-height:1.6; }
+
+  .use-cases-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media(max-width:700px){ .use-cases-grid{grid-template-columns:1fr 1fr;} }
+  @media(max-width:420px){ .use-cases-grid{grid-template-columns:1fr;} }
+  .use-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:24px 20px; display:flex; flex-direction:column; gap:12px; transition:box-shadow .25s,transform .25s; }
+  .use-card:hover { box-shadow:0 6px 28px rgba(37,99,235,0.09); transform:translateY(-3px); }
+  .use-icon { width:46px; height:46px; border-radius:13px; background:rgba(37,99,235,0.09); border:1px solid rgba(37,99,235,0.15); display:flex; align-items:center; justify-content:center; }
+  .use-icon svg { width:22px; height:22px; stroke:var(--blue-bright); fill:none; stroke-width:1.8; }
+  .use-card h4 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); }
+  .use-card p { color:var(--muted); font-size:12.5px; line-height:1.65; }
+
+  .faq-list { display:flex; flex-direction:column; gap:12px; max-width:720px; margin:0 auto; }
+  .faq-item { background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:box-shadow .2s; }
+  .faq-item.open { box-shadow:0 4px 24px rgba(37,99,235,0.08); border-color:rgba(37,99,235,0.25); }
+  .faq-question { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; cursor:pointer; font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--text); gap:14px; user-select:none; }
+  .faq-question:hover { color:var(--blue); }
+  .faq-chevron { width:20px; height:20px; flex-shrink:0; stroke:var(--muted); fill:none; stroke-width:2; transition:transform .3s; }
+  .faq-item.open .faq-chevron { transform:rotate(180deg); stroke:var(--blue); }
+  .faq-answer { max-height:0; overflow:hidden; transition:max-height .35s ease,padding .3s; padding:0 22px; color:var(--muted); font-size:13.5px; line-height:1.75; }
+  .faq-item.open .faq-answer { max-height:200px; padding:0 22px 18px; }
+
+  /* ─── SPINNER ─── */
+  .mini-spin { width:14px; height:14px; border-radius:50%; border:2px solid rgba(37,99,235,0.2); border-top:2px solid var(--blue); animation:spin .8s linear infinite; flex-shrink:0; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+
+
+   /* ─── ABOUT SECTION ─── */
+.about-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+@media(max-width:768px){
+  .about-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.about-text .about-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.about-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.about-features div {
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.about-image img {
+  width: 100%;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(37,99,235,0.15);
+  object-fit: cover;
+}
+
+
+
+ /* FOOTER */
+  .site-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  .footer-top {
+    max-width: 1020px; margin: 0 auto;
+    padding: 52px 24px 36px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 780px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .footer-brand .nav-logo {
+    display: inline-flex; margin-bottom: 14px;
+  }
+  .footer-brand p {
+    font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 240px; margin-bottom: 20px;
+  }
+  .footer-socials { display: flex; gap: 10px; }
+  .footer-social-btn {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); text-decoration: none;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .footer-social-btn:hover {
+    background: rgba(37,99,235,0.1); border-color: var(--blue-bright); color: var(--blue);
+  }
+  .footer-social-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .footer-col h5 {
+    font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text); letter-spacing: .6px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: var(--blue); }
+  .footer-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .footer-bottom {
+    max-width: 1020px; margin: 0 auto;
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .footer-copy {
+    font-size: 12.5px; color: var(--muted);
+  }
+  .footer-copy a { color: var(--blue); text-decoration: none; }
+  .footer-copy a:hover { text-decoration: underline; }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.18);
+    color: var(--blue); font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: .4px;
+  }
+  .footer-badge svg { width: 10px; height: 10px; fill: var(--blue); stroke: none; }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="./index.html">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    AI Image Tools
+  </a>
+  <ul class="nav-links">
+    <li><a href="./index.html">Home</a></li>
+    <li><a href="./dashboard.html">Dashboard</a></li>
+    <li><a href="./contact.html">Contact</a></li>
+    <li><a href="./terms.html">Terms of Use</a></li>
+    <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+  </ul>
+  <div class="nav-right">
+    <div id="nav-auth-area">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+        <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile-menu" id="navMobileMenu">
+    <ul class="nav-links-mobile">
+      <li><a href="./index.html">Home</a></li>
+      <li><a href="./dashboard.html">Dashboard</a></li>
+      <li><a href="./contact.html">Contact</a></li>
+      <li><a href="./terms.html">Terms of Use</a></li>
+      <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+    </ul>
+    <div id="nav-auth-mobile">
+      <a href="./login.html" style="font-size:14px;font-weight:600;color:#3b7ef8;text-decoration:none;padding:8px 14px;border-radius:8px;border:1.5px solid #dbeafe;">Login</a>
+      <a href="./register.html" style="font-size:14px;font-weight:600;color:#fff;background:#3b7ef8;padding:8px 18px;border-radius:8px;text-decoration:none;">Sign Up Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-text">
+  <div class="hero-pill">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#93c5fd" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+    JPG · PNG · WEBP · BMP · GIF — Batch Convert Free
+  </div>
+  <h1>Convert Images to<br>Any Format Instantly</h1>
+  <p>Upload multiple images at once, choose your output format, set quality & size, and download them all — right in your browser. No uploads to a server, 100% private.</p>
+  <div class="format-flow">
+    <span class="fmt-badge">JPG</span>
+    <span class="fmt-arrow">⇄</span>
+    <span class="fmt-badge">PNG</span>
+    <span class="fmt-arrow">⇄</span>
+    <span class="fmt-badge">WEBP</span>
+    <span class="fmt-arrow">⇄</span>
+    <span class="fmt-badge">BMP</span>
+    <span class="fmt-arrow">⇄</span>
+    <span class="fmt-badge">GIF</span>
+  </div>
+</div>
+
+<!-- TOOL -->
+<div class="tool-wrapper">
+
+  <div id="errorBanner">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="errorText">Something went wrong.</span>
+  </div>
+
+  <!-- DROP ZONE -->
+  <div id="dropzone">
+    <div class="drop-icon">
+      <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+    </div>
+    <h3>Drop Images to Convert</h3>
+    <p>Supports JPG, PNG, WEBP, BMP, GIF — drag multiple files at once</p>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Choose Images
+    </button>
+    <p class="drop-note">✓ Processed entirely in your browser — no uploads, 100% private</p>
+    <input type="file" id="fileInput" accept="image/*" multiple />
+  </div>
+
+  <!-- FEATURES STRIP -->
+  <div class="features-strip" id="featuresStrip">
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+      Batch Convert
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      100% Private
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Quality Control
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      ZIP Download
+    </div>
+    <div class="feat-item">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      No Watermark · Free
+    </div>
+  </div>
+
+  <!-- CONVERTER AREA -->
+  <div id="converterArea">
+
+    <!-- STATS -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-label">Total Files</div>
+        <div class="stat-value blue" id="statTotal">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Converted</div>
+        <div class="stat-value green" id="statDone">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Original Size</div>
+        <div class="stat-value" id="statOrigSize">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Output Size</div>
+        <div class="stat-value green" id="statOutSize">—</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS BAR -->
+    <div class="settings-bar">
+      <div class="setting-group">
+        <label>Convert To</label>
+        <select class="setting-select" id="outputFormat" onchange="onFormatChange()">
+          <option value="jpeg">JPG — Joint Photographic</option>
+          <option value="png">PNG — Portable Network</option>
+          <option value="webp" selected>WEBP — Web Optimized</option>
+          <option value="bmp">BMP — Bitmap</option>
+          <option value="gif">GIF — Graphics Interchange</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <div class="quality-wrap">
+          <div class="quality-label">
+            <span>Quality</span>
+            <span class="quality-val" id="qualityVal">85%</span>
+          </div>
+          <input type="range" id="qualitySlider" min="1" max="100" value="85" oninput="updateQuality()">
+        </div>
+      </div>
+      <div class="setting-group">
+        <label>Resize (optional)</label>
+        <div class="resize-row">
+          <div class="resize-input-wrap">
+            <label>Width px</label>
+            <input type="number" class="resize-input" id="resizeW" placeholder="auto" min="1" max="8000">
+          </div>
+          <div class="resize-input-wrap">
+            <label>Height px</label>
+            <input type="number" class="resize-input" id="resizeH" placeholder="auto" min="1" max="8000">
+          </div>
+          <label class="lock-ratio">
+            <input type="checkbox" id="lockRatio" checked>
+            Lock ratio
+          </label>
+        </div>
+      </div>
+      <div>
+        <button class="btn-convert-all" onclick="convertAll()">
+          <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+          Convert All
+        </button>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h3>Files</h3>
+        <span class="count-badge" id="countBadge">0 images</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-ghost" id="clearBtn" onclick="clearAll()">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Clear All
+        </button>
+        <button class="btn-zip" id="zipBtn" onclick="downloadZip()" disabled>
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download All ZIP
+        </button>
+      </div>
+    </div>
+
+    <!-- FILE LIST -->
+    <div class="file-list" id="fileList"></div>
+
+    <!-- ADD MORE -->
+    <button class="add-more-btn" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Add More Images
+    </button>
+
+  </div>
+</div>
+
+
+<!-- ABOUT SECTION -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div class="about-container">
+
+    <!-- LEFT CONTENT -->
+    <div class="about-text">
+      <div class="section-label">
+        About Tool
+      </div>
+
+      <h2 class="section-title">
+         Convert Images to Any Format Instantly
+      </h2>
+
+      <p class="section-sub">
+       Our Image Converter Tool allows you to quickly convert images into different formats like JPG, PNG, WEBP, BMP, and GIF. Whether you need better compatibility, smaller file sizes, or optimized images for web and apps, this tool makes the process fast, simple, and secure — directly in your browser.
+</p>
+
+      <p class="about-desc">
+        This tool is designed for developers, designers, and everyday users who need a simple, fast, and secure way to convert images. 
+        With batch conversion, quality control, and resizing options, you get full control over your images without using heavy software like Photoshop.
+      </p>
+
+      <div class="about-features">
+        <div>✔ 100% Browser-Based Processing</div>
+        <div>✔ No Watermark, Completely Free</div>
+        <div>✔ Batch Image Conversion</div>
+        <div>✔ Secure & Private</div>
+      </div>
+    </div>
+
+    <!-- RIGHT IMAGE -->
+    <div class="about-image">
+      <img src="./img/image conveter.jpg" alt="Image Converter Tool">
+    </div>
+
+  </div>
+</div>
+
+
+<!-- HOW IT WORKS -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;">
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      How It Works
+    </div>
+    <div class="section-title">Convert Images in 4 Simple Steps</div>
+    <p class="section-sub" style="margin:0 auto 44px;">Everything happens right in your browser — no uploads, no waiting, no privacy concerns.</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h4>Upload Images</h4>
+      <p>Drag & drop or click to select one or multiple images. JPG, PNG, WEBP, BMP and GIF supported.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h4>Choose Settings</h4>
+      <p>Select your output format, adjust quality (1–100%), and optionally resize width or height.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h4>Convert</h4>
+      <p>Hit "Convert All" — your browser processes everything instantly using the Canvas API. No server needed.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">4</div>
+      <h4>Download</h4>
+      <p>Download files individually or click "Download All ZIP" to get everything in a single ZIP file.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SUPPORTED FORMATS -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;">
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Supported Formats
+    </div>
+    <div class="section-title">Every Major Image Format</div>
+    <p class="section-sub" style="margin:0 auto 44px;">Convert between any of these formats freely — choose the right one for your specific use case.</p>
+  </div>
+  <div class="formats-grid">
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(239,68,68,0.12);color:#ef4444;">JPG</div>
+      <h4>JPEG / JPG</h4>
+      <p>Best for photos and realistic images. Small file size, slight compression.</p>
+    </div>
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(37,99,235,0.12);color:#2563eb;">PNG</div>
+      <h4>PNG</h4>
+      <p>Lossless quality with transparency support. Ideal for logos and graphics.</p>
+    </div>
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(16,185,129,0.12);color:#10b981;">WEBP</div>
+      <h4>WEBP</h4>
+      <p>Modern web format. Smaller than JPG/PNG with excellent quality.</p>
+    </div>
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(245,158,11,0.12);color:#f59e0b;">BMP</div>
+      <h4>BMP</h4>
+      <p>Uncompressed bitmap. Maximum quality, larger file size. Good for editing.</p>
+    </div>
+    <div class="format-card">
+      <div class="fmt-big" style="background:rgba(139,92,246,0.12);color:#8b5cf6;">GIF</div>
+      <h4>GIF</h4>
+      <p>256 colors, supports transparency. Best for simple graphics and icons.</p>
+    </div>
+  </div>
+</div>
+
+<!-- USE CASES -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;">
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Use Cases
+    </div>
+    <div class="section-title">Why Convert Image Formats?</div>
+    <p class="section-sub" style="margin:0 auto 44px;">The right format makes a huge difference — for website speed, print quality, and compatibility.</p>
+  </div>
+  <div class="use-cases-grid">
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+      </div>
+      <h4>Website Performance</h4>
+      <p>Convert JPGs to WEBP to reduce image sizes by 30–50% and speed up your website's loading time.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      </div>
+      <h4>Logo & Graphics</h4>
+      <p>Convert to PNG to get transparent backgrounds for logos, watermarks, and UI graphics.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <h4>Social Media</h4>
+      <p>Resize and convert images to the exact format and dimensions required by each platform.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <h4>Email & Documents</h4>
+      <p>Convert to JPG with reduced quality to shrink image file sizes for email attachments and docs.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      </div>
+      <h4>App Development</h4>
+      <p>Batch convert and resize assets to the exact dimensions your app or game requires.</p>
+    </div>
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      </div>
+      <h4>Design Workflow</h4>
+      <p>Quickly batch-convert exported design assets from one format to another without Photoshop.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<hr class="section-divider">
+<div class="section-wrapper">
+  <div style="text-align:center;">
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#93c5fd" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      FAQ
+    </div>
+    <div class="section-title">Frequently Asked Questions</div>
+    <p class="section-sub" style="margin:0 auto 44px;">Everything you need to know about IMG Converter.</p>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item open">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Is my image data sent to a server?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">No — everything happens locally in your browser using the HTML5 Canvas API. Your images never leave your device, which means 100% privacy and instant processing with no file size limits from server restrictions.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        How many images can I convert at once?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">There's no hard limit — you can batch-convert as many images as your browser can handle. For very large batches (50+), we recommend converting in groups to avoid slowing down your browser.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        What does the Quality slider do?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">The quality slider (1–100%) controls the compression level for JPG and WEBP outputs. Higher values mean better quality but larger file sizes. PNG and BMP are lossless, so the quality slider has no effect on them.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        How does the Resize feature work?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Enter a target width or height in pixels. With "Lock ratio" enabled, the other dimension is calculated automatically to preserve the original aspect ratio. Leave both fields blank to keep the original dimensions.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Which format should I use for my website?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">WEBP is the best choice for modern websites — it offers smaller files than JPG and PNG while maintaining excellent quality. For logos or images needing transparency, use PNG. For maximum compatibility with older browsers, use JPG.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Can I convert animated GIFs?
+        <svg class="faq-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="faq-answer">Only the first frame of an animated GIF will be converted, as the Canvas API works with static images. Converting to GIF output will also produce a static, non-animated image. Animated GIF support is on our roadmap.</div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- FOOTER -->
+<hr class="section-divider">
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        AI Image Tools
+      </a>
+      <p>Free AI-powered profile picture maker. Remove background, circle crop, and download for any platform in seconds.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Tools</h5>
+      <ul>
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./dashboard.html">Dashboard</a></li>
+        <li><a href="#">BG Remover</a></li>
+        <li><a href="#">Image Resizer</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="./contact.html">Contact Us</a></li>
+        <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="./terms.html">Terms of Use</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="./contact.html">Help Center</a></li>
+        <li><a href="./contact.html">Report a Bug</a></li>
+      </ul>
+    </div>
+  </div>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">&#169; 2025 <a href="#">AI Image Tools</a>. All rights reserved. Powered by <a href="https://www.aiImageTools.com" target="_blank">Image Tools</a>.</p>
+    <span class="footer-badge">
+      <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="6"/></svg>
+      Free &amp; No Watermark
+    </span>
+  </div>
+</footer>
+
+
+<script>
+/* ─── State ─── */
+let files = []; // { id, file, name, origSize, blob, outputSize, status }
+let idCounter = 0;
+const fmtColors = {
+  jpeg:{ bg:'rgba(239,68,68,0.12)', color:'#ef4444', label:'JPG' },
+  jpg: { bg:'rgba(239,68,68,0.12)', color:'#ef4444', label:'JPG' },
+  png: { bg:'rgba(37,99,235,0.12)', color:'#2563eb', label:'PNG' },
+  webp:{ bg:'rgba(16,185,129,0.12)',color:'#10b981', label:'WEBP'},
+  bmp: { bg:'rgba(245,158,11,0.12)', color:'#f59e0b', label:'BMP' },
+  gif: { bg:'rgba(139,92,246,0.12)', color:'#8b5cf6', label:'GIF' },
+};
+
+/* ─── DOM ─── */
+const dropzone   = document.getElementById('dropzone');
+const fileInput  = document.getElementById('fileInput');
+const converterArea = document.getElementById('converterArea');
+const featuresStrip = document.getElementById('featuresStrip');
+const fileList   = document.getElementById('fileList');
+
+/* ─── Drag & Drop ─── */
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag-over');
+  handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+});
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  handleFiles(Array.from(fileInput.files));
+  fileInput.value = '';
+});
+
+/* ─── Handle files ─── */
+function handleFiles(newFiles) {
+  if (!newFiles.length) return;
+  newFiles.forEach(f => {
+    const id = ++idCounter;
+    files.push({ id, file:f, name:f.name, origSize:f.size, blob:null, outputSize:null, status:'waiting' });
+    renderCard(files[files.length-1]);
+  });
+  dropzone.style.display = 'none';
+  featuresStrip.style.display = 'none';
+  converterArea.style.display = 'block';
+  updateStats();
+  updateCountBadge();
+}
+
+/* ─── Render single card ─── */
+function renderCard(entry) {
+  const fmt = entry.file.type.split('/')[1] || 'img';
+  const fmtStyle = fmtColors[fmt] || { bg:'rgba(100,100,100,0.1)', color:'#888', label:fmt.toUpperCase() };
+  const outFmt = document.getElementById('outputFormat').value;
+  const outFmtStyle = fmtColors[outFmt] || fmtStyle;
+
+  const card = document.createElement('div');
+  card.className = 'file-card';
+  card.id = 'card-' + entry.id;
+  card.innerHTML = `
+    <div class="file-thumb">
+      <div class="fmt-icon" style="background:${fmtStyle.bg};color:${fmtStyle.color};">${fmtStyle.label}</div>
+    </div>
+    <div class="file-info">
+      <div class="file-name" title="${entry.name}">${entry.name}</div>
+      <div class="file-meta">
+        <span class="file-size">${formatBytes(entry.origSize)}</span>
+        <div class="file-arrow">
+          <span class="fmt-from">${fmtStyle.label}</span>
+          →
+          <span class="fmt-to">${outFmtStyle.label.toUpperCase()}</span>
+        </div>
+        <span class="file-status status-waiting" id="status-${entry.id}">Waiting…</span>
+      </div>
+      <div class="file-progress" id="prog-${entry.id}">
+        <div class="file-progress-bar" id="progbar-${entry.id}"></div>
+      </div>
+    </div>
+    <div class="file-actions">
+      <button class="btn-dl" id="dl-${entry.id}" disabled onclick="downloadSingle(${entry.id})">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save
+      </button>
+      <button class="btn-remove" onclick="removeFile(${entry.id})" title="Remove">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `;
+
+  // Load thumb async
+  const thumb = card.querySelector('.fmt-icon');
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    img.onerror = () => {};
+    thumb.replaceWith(img);
+  };
+  reader.readAsDataURL(entry.file);
+
+  fileList.appendChild(card);
+}
+
+/* ─── Convert single entry ─── */
+async function convertEntry(entry) {
+  const format = document.getElementById('outputFormat').value;
+  const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+  const targetW = parseInt(document.getElementById('resizeW').value) || null;
+  const targetH = parseInt(document.getElementById('resizeH').value) || null;
+  const lockRatio = document.getElementById('lockRatio').checked;
+
+  const card = document.getElementById('card-' + entry.id);
+  const statusEl = document.getElementById('status-' + entry.id);
+  const progEl = document.getElementById('prog-' + entry.id);
+  const progBar = document.getElementById('progbar-' + entry.id);
+
+  card.classList.remove('done','error');
+  card.classList.add('converting');
+  statusEl.className = 'file-status status-converting';
+  statusEl.textContent = 'Converting…';
+  progEl.style.display = 'block';
+
+  try {
+    const blob = await new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(entry.file);
+      img.onload = () => {
+        let w = img.naturalWidth, h = img.naturalHeight;
+
+        if (targetW && !targetH) {
+          if (lockRatio) h = Math.round(targetW * h / w);
+          w = targetW;
+        } else if (targetH && !targetW) {
+          if (lockRatio) w = Math.round(targetH * w / h);
+          h = targetH;
+        } else if (targetW && targetH) {
+          w = targetW; h = targetH;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+
+        const mimeMap = { jpeg:'image/jpeg', png:'image/png', webp:'image/webp', bmp:'image/bmp', gif:'image/gif' };
+        const mime = mimeMap[format] || 'image/jpeg';
+        const q = (format === 'jpeg' || format === 'webp') ? quality : undefined;
+
+        canvas.toBlob(b => {
+          if (b) resolve(b);
+          else reject(new Error('Conversion failed'));
+        }, mime, q);
+      };
+      img.onerror = () => reject(new Error('Could not load image'));
+      img.src = url;
+    });
+
+    entry.blob = blob;
+    entry.outputSize = blob.size;
+    entry.status = 'done';
+
+    card.classList.remove('converting');
+    card.classList.add('done');
+    statusEl.className = 'file-status status-done';
+    statusEl.textContent = '✓ Done · ' + formatBytes(blob.size);
+    progBar.style.width = '100%';
+    document.getElementById('dl-' + entry.id).disabled = false;
+
+  } catch(err) {
+    entry.status = 'error';
+    card.classList.remove('converting');
+    card.classList.add('error');
+    statusEl.className = 'file-status status-error';
+    statusEl.textContent = '✗ ' + err.message;
+  }
+}
+
+/* ─── Convert All ─── */
+async function convertAll() {
+  for (const entry of files) {
+    await convertEntry(entry);
+  }
+  updateStats();
+  const allDone = files.filter(f => f.status === 'done').length;
+  if (allDone > 0) document.getElementById('zipBtn').disabled = false;
+}
+
+/* ─── Download single ─── */
+function downloadSingle(id) {
+  const entry = files.find(f => f.id === id);
+  if (!entry || !entry.blob) return;
+  const format = document.getElementById('outputFormat').value;
+  const ext = format === 'jpeg' ? 'jpg' : format;
+  const baseName = entry.name.replace(/\.[^.]+$/, '');
+  const url = URL.createObjectURL(entry.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = baseName + '_converted.' + ext;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Download ZIP ─── */
+async function downloadZip() {
+  const done = files.filter(f => f.status === 'done' && f.blob);
+  if (!done.length) return;
+  const format = document.getElementById('outputFormat').value;
+  const ext = format === 'jpeg' ? 'jpg' : format;
+  const zip = new JSZip();
+  done.forEach(entry => {
+    const baseName = entry.name.replace(/\.[^.]+$/, '');
+    zip.file(baseName + '_converted.' + ext, entry.blob);
+  });
+  const content = await zip.generateAsync({ type:'blob' });
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'converted_images.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Remove file ─── */
+function removeFile(id) {
+  files = files.filter(f => f.id !== id);
+  const card = document.getElementById('card-' + id);
+  if (card) card.remove();
+  if (files.length === 0) {
+    converterArea.style.display = 'none';
+    dropzone.style.display = '';
+    featuresStrip.style.display = '';
+  }
+  updateStats();
+  updateCountBadge();
+}
+
+/* ─── Clear all ─── */
+function clearAll() {
+  files = [];
+  fileList.innerHTML = '';
+  converterArea.style.display = 'none';
+  dropzone.style.display = '';
+  featuresStrip.style.display = '';
+  document.getElementById('zipBtn').disabled = true;
+  updateStats();
+}
+
+/* ─── Stats ─── */
+function updateStats() {
+  const total = files.length;
+  const done = files.filter(f => f.status === 'done');
+  const origTotal = files.reduce((s, f) => s + f.origSize, 0);
+  const outTotal = done.reduce((s, f) => s + (f.outputSize || 0), 0);
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done.length;
+  document.getElementById('statOrigSize').textContent = total ? formatBytes(origTotal) : '—';
+  document.getElementById('statOutSize').textContent = outTotal ? formatBytes(outTotal) : '—';
+}
+
+function updateCountBadge() {
+  document.getElementById('countBadge').textContent = files.length + ' image' + (files.length !== 1 ? 's' : '');
+}
+
+/* ─── Format change — update all format-to labels ─── */
+function onFormatChange() {
+  const outFmt = document.getElementById('outputFormat').value;
+  const outFmtStyle = fmtColors[outFmt] || { label: outFmt.toUpperCase() };
+  document.querySelectorAll('.fmt-to').forEach(el => {
+    el.textContent = outFmtStyle.label.toUpperCase();
+  });
+  // Reset converted state if format changes
+  files.forEach(entry => {
+    if (entry.status === 'done') {
+      entry.blob = null; entry.outputSize = null; entry.status = 'waiting';
+      const card = document.getElementById('card-' + entry.id);
+      if (card) {
+        card.classList.remove('done','converting','error');
+        const statusEl = document.getElementById('status-' + entry.id);
+        statusEl.className = 'file-status status-waiting';
+        statusEl.textContent = 'Waiting…';
+        document.getElementById('dl-' + entry.id).disabled = true;
+      }
+    }
+  });
+  document.getElementById('zipBtn').disabled = true;
+  updateStats();
+  updateQuality();
+}
+
+/* ─── Quality ─── */
+function updateQuality() {
+  const val = document.getElementById('qualitySlider').value;
+  document.getElementById('qualityVal').textContent = val + '%';
+  const fmt = document.getElementById('outputFormat').value;
+  const slider = document.getElementById('qualitySlider');
+  slider.disabled = (fmt === 'png' || fmt === 'bmp' || fmt === 'gif');
+  document.getElementById('qualityVal').style.opacity = slider.disabled ? '.4' : '1';
+}
+
+/* ─── Resize lock ratio ─── */
+const resizeW = document.getElementById('resizeW');
+const resizeH = document.getElementById('resizeH');
+resizeW.addEventListener('input', () => {
+  if (!document.getElementById('lockRatio').checked) return;
+  if (files.length && resizeW.value) {
+    const f = files[0];
+    const img = new Image();
+    img.onload = () => {
+      const ratio = img.naturalHeight / img.naturalWidth;
+      resizeH.value = Math.round(parseInt(resizeW.value) * ratio) || '';
+    };
+    img.src = URL.createObjectURL(f.file);
+  }
+});
+
+/* ─── Helpers ─── */
+function formatBytes(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(2) + ' MB';
+}
+
+/* ─── FAQ ─── */
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ─── Hamburger ─── */
+const hamburger = document.getElementById('hamburger');
+  const navMobileMenu = document.getElementById('navMobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navMobileMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!hamburger.contains(e.target) && !navMobileMenu.contains(e.target)) {
+      hamburger.classList.remove('active');
+      navMobileMenu.classList.remove('open');
+    }
+  });
+
+/* Init */
+updateQuality();
+</script>
+</body>
+</html>
